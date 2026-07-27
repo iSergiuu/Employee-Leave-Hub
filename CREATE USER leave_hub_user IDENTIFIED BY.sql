@@ -1,0 +1,3 @@
+CREATE USER leave_hub_user IDENTIFIED BY "Parola123";
+GRANT CONNECT, RESOURCE TO leave_hub_user;
+ALTER USER leave_hub_user QUOTA UNLIMITED ON USERS;
