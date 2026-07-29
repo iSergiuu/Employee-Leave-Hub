@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -21,5 +23,10 @@ public class LeaveTypeController {
     public ResponseEntity<List<LeaveType>> getAllLeaveTypes() {
         List<LeaveType> leaveTypes = leaveTypeService.getAllLeaveTypes();
         return ResponseEntity.ok(leaveTypes);
+    }
+    @PostMapping
+    public ResponseEntity<LeaveType> createLeaveType(@RequestBody LeaveType leaveType) {
+        LeaveType savedType = leaveTypeService.saveLeaveType(leaveType);
+        return ResponseEntity.ok(savedType);
     }
 }

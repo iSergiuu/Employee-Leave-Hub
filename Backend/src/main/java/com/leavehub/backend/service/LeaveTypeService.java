@@ -16,4 +16,7 @@ public class LeaveTypeService {
     public List<LeaveType> getAllLeaveTypes() {
         return leaveTypeRepository.findAll();
     }
+    public LeaveType saveLeaveType(LeaveType leaveType) {
+        return leaveTypeRepository.save(leaveType);
+    }
 }
