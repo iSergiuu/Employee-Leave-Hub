@@ -1,0 +1,48 @@
+<div class="dashboard-container">
+  
+  <header class="dashboard-header">
+    <div>
+      <h1 class="greeting">Salut, Sergiu! 👋</h1>
+      <p class="subtitle">Aici este un rezumat al situației concediilor tale.</p>
+    </div>
+    <button class="btn-primary">+ Cerere Nouă</button>
+  </header>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Zile de Odihnă</h3>
+      <p class="stat-value">21</p>
+      <span class="stat-label">Disponibile pe anul curent</span>
+    </div>
+    
+    <div class="stat-card">
+      <h3>Zile Medicale</h3>
+      <p class="stat-value">0</p>
+      <span class="stat-label">Utilizate în acest an</span>
+    </div>
+
+    <div class="stat-card">
+      <h3>Cereri în așteptare</h3>
+      <p class="stat-value">1</p>
+      <span class="stat-label">Necesită aprobare HR</span>
+    </div>
+  </div>
+
+  <div class="data-section">
+    <h2>Tipuri de Concediu Permise (Baza de Date Oracle)</h2>
+    
+    <div class="db-card" *ngIf="leaveTypesData.length > 0; else noData">
+      <ul class="leave-list">
+        <li *ngFor="let leave of leaveTypesData">
+          <span class="leave-icon">📌</span>
+          <strong>{{ leave | json }}</strong> 
+        </li>
+      </ul>
+    </div>
+    
+    <ng-template #noData>
+      <p class="loading-text">Se încarcă datele din backend...</p>
+    </ng-template>
+  </div>
+
+</div>

@@ -22,6 +22,9 @@ public class Employee {
     @Column(name = "ROLE", nullable = false)
     private String role;
 
+    @Column(name = "PASSWORD_HASH", nullable = false)
+    private String password;
+
     @ManyToOne
     @JoinColumn(name = "DEPT_ID")
     private Department department;

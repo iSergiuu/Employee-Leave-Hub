@@ -1,0 +1,52 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Creare Cont</h2>
+      <p>Alătură-te echipei și gestionează-ți concediile</p>
+    </div>
+
+    <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label>Nume Complet</label>
+        <input type="text" formControlName="fullname" placeholder="Ex: Popescu Ion">
+        <div class="error-text" *ngIf="registerForm.get('fullname')?.invalid && registerForm.get('fullname')?.touched">
+          Numele este obligatoriu (minim 3 caractere).
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Adresă de email</label>
+        <input type="email" formControlName="email" placeholder="Introdu email-ul...">
+        <div class="error-text" *ngIf="registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched">
+          Email-ul este obligatoriu.
+        </div>
+        <div class="error-text" *ngIf="registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched">
+          Te rugăm să introduci un format valid (ex: nume@domeniu.ro).
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Parolă</label>
+        <input type="password" formControlName="password" placeholder="Alege o parolă sigură...">
+        
+        <ul class="password-rules">
+          <li>Minim 8 caractere</li>
+          <li>Cel puțin o literă mare (A-Z) și o literă mică (a-z)</li>
+          <li>Cel puțin o cifră (0-9)</li>
+          <li>Cel puțin un caracter special (ex: !@#$%^&*)</li>
+        </ul>
+
+        <div class="error-text" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          Parola introdusă nu îndeplinește toate criteriile de mai sus.
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="registerForm.invalid">Creează Contul</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Ai deja un cont? <a routerLink="/login">Întoarce-te la Login</a></p>
+    </div>
+  </div>
+</div>
