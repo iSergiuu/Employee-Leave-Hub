@@ -2,16 +2,21 @@ package com.leavehub.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Table(name = "EMPLOYEE")
 @Data
+@SQLDelete(sql = "UPDATE employee SET deleted_at = CURRENT_TIMESTAMP WHERE empl_id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Employee implements UserDetails {
 
     @Id
@@ -35,7 +40,8 @@ public class Employee implements UserDetails {
     @JoinColumn(name = "DEPT_ID")
     private Department department;
 
-    // --- METODELE PENTRU SPRING SECURITY (UserDetails) ---
+    @Column(name = "DELETED_AT")
+    private LocalDateTime deletedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

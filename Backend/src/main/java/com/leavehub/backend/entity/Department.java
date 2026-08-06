@@ -2,10 +2,16 @@ package com.leavehub.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "DEPARTMENT")
 @Data
+@SQLDelete(sql = "UPDATE department SET deleted_at = CURRENT_TIMESTAMP WHERE dept_id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Department {
 
     @Id
@@ -22,4 +28,7 @@ public class Department {
     @OneToOne
     @JoinColumn(name = "MANAGER_ID")
     private Employee manager;
+
+    @Column(name = "DELETED_AT")
+    private LocalDateTime deletedAt;
 }

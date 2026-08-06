@@ -98,3 +98,59 @@ BEGIN
 END;
 /
 
+RENAME departament TO department;
+ALTER TABLE department RENAME COLUMN departament_name TO department_name;
+
+ALTER TABLE leave_balance RENAME COLUMN total_allpcated TO total_allocated;
+
+
+INSERT INTO department (department_name, max_absent_employees) 
+VALUES ('IT & Software Development', 2);
+
+INSERT INTO department (department_name, max_absent_employees) 
+VALUES ('Human Resources', 1);
+
+INSERT INTO employee (name, email, role, dept_id) 
+VALUES ('Sergiu', 'sergiu@leavehub.com', 'Admin', 1);
+
+INSERT INTO employee (name, email, role, dept_id) 
+VALUES ('Andrei Popescu', 'andrei.popescu@leavehub.com', 'User', 1);
+
+INSERT INTO leave_type (name, code, requires_attachment, paid) 
+VALUES ('Concediu de Odihna', 'CO', FALSE, TRUE);
+
+INSERT INTO leave_type (name, code, requires_attachment, paid) 
+VALUES ('Concediu Medical', 'CM', TRUE, TRUE);
+
+INSERT INTO public_holiday (holiday_date, description) 
+VALUES (TO_DATE('2026-11-30', 'YYYY-MM-DD'), 'Sfantul Andrei');
+
+INSERT INTO public_holiday (holiday_date, description) 
+VALUES (TO_DATE('2026-12-01', 'YYYY-MM-DD'), 'Ziua Nationala a Romaniei');
+
+INSERT INTO leave_balance (empl_id, leave_type_id, year, total_allocated, days_used) 
+VALUES (1, 1, 2026, 21, 0);
+
+INSERT INTO leave_balance (empl_id, leave_type_id, year, total_allocated, days_used) 
+VALUES (2, 1, 2026, 21, 5);
+
+COMMIT;
+
+ALTER TABLE employee ADD password_hash VARCHAR2(255);
+ALTER TABLE employee ADD user_role VARCHAR2(50) DEFAULT 'EMPLOYEE';
+
+select * from department;
+
+SELECT search_condition 
+FROM user_constraints 
+WHERE constraint_name = 'SYS_C008596';
+
+ALTER TABLE employee DROP COLUMN user_role;
+
+INSERT INTO leave_balance (empl_id, leave_type_id, year, total_allocated, days_used) 
+VALUES (43, 1, 2026, 21, 0);
+
+INSERT INTO leave_balance (empl_id, leave_type_id, year, total_allocated, days_used) 
+VALUES (43, 2, 2026, 10, 0);
+
+COMMIT;
