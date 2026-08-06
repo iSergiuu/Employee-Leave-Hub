@@ -53,4 +53,14 @@ export class AdminService {
   deleteHoliday(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/holidays/${id}`, { headers: this.getHeaders(), responseType: 'text' });
   }
+  getWorkflowTimeline(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/timeline`, { headers: this.getHeaders() });
+  }
+
+  downloadReport(reportType: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/reports/${reportType}`, { 
+      headers: this.getHeaders(),
+      responseType: 'blob' 
+    });
+  }
 }

@@ -67,7 +67,8 @@ public class DashboardService {
             String statusRO = translateStatus(req.getStatus());
             String actionDate = req.getCreatedAt() != null ? req.getCreatedAt().toLocalDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
 
-            return new EmployeeDashboardDTO.RequestDTO(typeName, period, req.getWorkingDays(), statusRO, actionDate);
+            // AICI ESTE MODIFICAREA: Trimitem req.getId() ca prim parametru
+            return new EmployeeDashboardDTO.RequestDTO(req.getId(), typeName, period, req.getWorkingDays(), statusRO, actionDate);
         }).collect(Collectors.toList());
 
         List<EmployeeDashboardDTO.BalanceDTO> balanceDTOs = balances.stream().map(b -> {

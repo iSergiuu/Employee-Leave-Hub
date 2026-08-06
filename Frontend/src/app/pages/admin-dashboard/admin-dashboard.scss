@@ -280,6 +280,60 @@
   animation: overlayFadeIn 0.25s ease-out forwards;
 }
 
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  padding-left: 12px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 27px;
+    width: 2px;
+    background-color: #e2e8f0;
+    z-index: 0;
+  }
+}
+
+.timeline-item {
+  display: flex;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+
+  .timeline-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 1px #e2e8f0;
+
+    &.marker-approved { background-color: #ecfdf5; color: #10b981; box-shadow: 0 0 0 1px #10b981; }
+    &.marker-rejected { background-color: #fef2f2; color: #ef4444; box-shadow: 0 0 0 1px #ef4444; }
+    &.marker-pending { background-color: #fff7ed; color: #f97316; box-shadow: 0 0 0 1px #f97316; }
+  }
+
+  .timeline-content {
+    background-color: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    width: 100%;
+    border: 1px solid #f1f5f9;
+  }
+}
+
 .modal-card {
   background: #ffffff;
   width: 100%;

@@ -23,6 +23,7 @@ public class EmployeeDashboardDTO {
     @Data
     @AllArgsConstructor
     public static class RequestDTO {
+        private Long id; // Aici am adăugat ID-ul cererii!
         private String type;
         private String period;
         private int days;

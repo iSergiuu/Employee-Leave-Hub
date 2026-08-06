@@ -1,1 +1,131 @@
-<p>manager-dashboard works!</p>
+<div class="dashboard-wrapper">
+  
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Aprobări Manager</h1>
+      <p>Gestionează și validează cererile de concediu pentru departamentul tău</p>
+    </div>
+  </header>
+
+  <div class="dashboard-grid" style="display: block;">
+    <section class="card-module recent-requests-module">
+      <div class="module-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <h2>Cereri în așteptare și istoric</h2>
+        
+        <div class="filters" style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <input type="text" [(ngModel)]="filterEmployee" (input)="applyFilters()" placeholder="Caută după nume..." style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; min-width: 200px;">
+          
+          <div class="custom-select-wrapper" style="min-width: 180px;">
+            <select [(ngModel)]="filterStatus" (change)="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; cursor: pointer;">
+              <option value="Toate">Toate Statusurile</option>
+              <option value="PENDING">În Așteptare</option>
+              <option value="APPROVED">Aprobate</option>
+              <option value="REJECTED">Respinse</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="table-wrapper">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Angajat</th>
+              <th>Tip Concediu</th>
+              <th>Perioada</th>
+              <th>Zile</th>
+              <th>Status</th>
+              <th>Acțiuni</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let req of filteredRequests">
+              <td class="font-medium">{{ req.employeeName }}</td>
+              <td>{{ req.leaveType }}</td>
+              <td>{{ req.period }}</td>
+              <td>{{ req.workingDays }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusClass(req.status)">
+                  {{ req.status }}
+                </span>
+              </td>
+              <td>
+                <div class="action-group" style="display: flex; gap: 8px;" *ngIf="req.status.toUpperCase() === 'PENDING'">
+                  <button class="btn-action" style="padding: 6px 12px; font-size: 12px; background-color: #ecfdf5; color: #10b981; border: 1px solid #10b981; cursor: pointer; font-weight: 600; border-radius: 6px;" (click)="openActionModal(req.id, 'APPROVE')">
+                    Aprobă
+                  </button>
+                  <button class="btn-delete" style="padding: 6px 12px; font-size: 12px; background-color: #fef2f2; color: #ef4444; border: 1px solid #ef4444; cursor: pointer; font-weight: 600; border-radius: 6px;" (click)="openActionModal(req.id, 'REJECT')">
+                    Respinge
+                  </button>
+                </div>
+                <span *ngIf="req.status.toUpperCase() !== 'PENDING'" class="text-muted" style="font-size: 13px;">
+                  Procesată
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="filteredRequests.length === 0">
+              <td colspan="6" style="text-align: center; padding: 32px; color: #64748b;">
+                Nu a fost găsită nicio cerere.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal Aprobare / Respingere în stilul aplicației -->
+  <div class="modal-overlay" *ngIf="isModalOpen">
+    <div class="modal-card">
+      
+      <div class="modal-header">
+        <div class="header-title">
+          <div class="header-icon" [ngClass]="actionType === 'APPROVE' ? 'box-green' : 'box-orange'">
+            <svg *ngIf="actionType === 'APPROVE'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <svg *ngIf="actionType === 'REJECT'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
+          <div class="header-text">
+            <h2>{{ actionType === 'APPROVE' ? 'Aprobare Cerere' : 'Respingere Cerere' }}</h2>
+            <p>Confirmă decizia pentru această solicitare</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="closeActionModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>
+            Motivare / Comentariu
+            <span *ngIf="actionType === 'REJECT'" style="color: #ef4444; font-weight: normal;">* (Obligatoriu)</span>
+            <span *ngIf="actionType === 'APPROVE'" style="color: #64748b; font-weight: normal;">(Opțional)</span>
+          </label>
+          <textarea [(ngModel)]="actionComment" rows="3" placeholder="Adaugă detalii justificative..." [class.is-invalid]="commentError" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; outline: none;"></textarea>
+          
+          <div *ngIf="commentError" style="color: #ef4444; font-size: 13px; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Comentariul este obligatoriu pentru a putea respinge cererea.
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeActionModal()">Anulează</button>
+        <button type="button" class="btn-primary" [ngStyle]="{'background-color': actionType === 'REJECT' ? '#ef4444' : ''}" (click)="submitAction()">
+          Confirmă
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

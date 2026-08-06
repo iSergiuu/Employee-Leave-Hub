@@ -13,7 +13,7 @@ import { AdminService } from '../../services/admin.service';
 })
 export class AdminDashboard implements OnInit {
   
-  activeTab: string = 'employees';
+  activeTab: string = 'reports';
 
   isDeptModalOpen: boolean = false;
   isHolidayModalOpen: boolean = false;
@@ -24,6 +24,14 @@ export class AdminDashboard implements OnInit {
   departments: any[] = [];
   employees: any[] = [];
   holidays: any[] = [];
+  
+  // Date noi pentru rapoarte și cronologie
+  timelineEvents: any[] = [];
+  reportsList = [
+    { code: 'pending', name: 'Cereri în Așteptare', description: 'Toate cererile care așteaptă aprobarea managerilor.' },
+    { code: 'balance', name: 'Sold Per Departament', description: 'Situația soldurilor de zile libere per departament.' },
+    { code: 'usage', name: 'Utilizare Concedii', description: 'Statistici generale pe tipuri de concediu la nivel de companie.' }
+  ];
 
   constructor(private adminService: AdminService) {}
 
@@ -41,6 +49,7 @@ export class AdminDashboard implements OnInit {
     this.loadDepartments();
     this.loadEmployees();
     this.loadHolidays();
+    this.loadTimeline();
   }
 
   loadDepartments(): void {
@@ -61,6 +70,13 @@ export class AdminDashboard implements OnInit {
     this.adminService.getHolidays().subscribe({
       next: (data) => this.holidays = data,
       error: (err) => console.error(err)
+    });
+  }
+
+  loadTimeline(): void {
+    this.adminService.getWorkflowTimeline().subscribe({
+      next: (data) => this.timelineEvents = data,
+      error: (err) => console.error('Eroare la încărcarea cronologiei', err)
     });
   }
 
@@ -105,6 +121,22 @@ export class AdminDashboard implements OnInit {
         error: (err) => alert(err.error || 'A apărut o eroare la ștergere.')
       });
     }
+  }
+
+  downloadAdminReport(reportCode: string): void {
+    this.adminService.downloadReport(reportCode).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Raport_${reportCode}_${new Date().getTime()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => alert('Eroare la generarea raportului din baza de date.')
+    });
   }
 
   openDeptModal(): void {

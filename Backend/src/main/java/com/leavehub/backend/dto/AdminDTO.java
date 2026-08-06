@@ -2,6 +2,7 @@ package com.leavehub.backend.dto;
 
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class AdminDTO {
 
@@ -26,5 +27,14 @@ public class AdminDTO {
         private Long id;
         private LocalDate holidayDate;
         private String description;
+    }
+    @Data
+    public static class TimelineEventInfo {
+        private Long id;
+        private Long requestId;
+        private String employeeName;
+        private String currentStatus;
+        private LocalDateTime changedAt;
+        private String comments;
     }
 }

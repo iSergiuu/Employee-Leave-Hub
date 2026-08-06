@@ -81,6 +81,7 @@
               <th>Zile</th>
               <th>Status</th>
               <th>Data Cererii</th>
+              <th>Acțiuni</th>
             </tr>
           </thead>
           <tbody>
@@ -94,6 +95,22 @@
                 </span>
               </td>
               <td class="text-muted">{{ req.actionDate }}</td>
+              <td>
+                <div class="action-group" style="display: flex; gap: 8px;">
+                  <button class="btn-action" 
+                          style="padding: 6px 12px; font-size: 12px;"
+                          *ngIf="req.status.toUpperCase() === 'APPROVED' || req.status.toUpperCase() === 'APROBAT'" 
+                          (click)="downloadPdf(req.id)">
+                    PDF
+                  </button>
+                  <button class="btn-delete" 
+                          style="padding: 6px 12px; font-size: 12px; background-color: #fef2f2; color: #ef4444; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;"
+                          *ngIf="req.status.toUpperCase() === 'PENDING' || req.status.toUpperCase() === 'ÎN AȘTEPTARE' || req.status.toUpperCase() === 'DRAFT' || req.status.toUpperCase() === 'CIORNĂ'" 
+                          (click)="cancelRequest(req.id)">
+                    Anulează
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -183,6 +200,12 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               <span>Data de sfârșit trebuie să fie ulterioară datei de început.</span>
             </div>
+          </div>
+
+          <div class="form-group" *ngIf="requestForm.get('leaveTypeId')?.value == '2'">
+            <label>Atașează document (Obligatoriu pentru CM)</label>
+            <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+            <small class="text-muted" style="display: block; margin-top: 4px; font-size: 12px; color: #64748b;">Formate acceptate: PDF, JPG, PNG.</small>
           </div>
 
           <div class="form-group">

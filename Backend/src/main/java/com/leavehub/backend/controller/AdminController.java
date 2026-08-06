@@ -77,4 +77,22 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Eroare la stergerea sarbatorii.");
         }
     }
+    @GetMapping("/timeline")
+    public ResponseEntity<List<AdminDTO.TimelineEventInfo>> getTimeline() {
+        return ResponseEntity.ok(adminService.getWorkflowTimeline());
+    }
+
+    @GetMapping("/reports/{reportType}")
+    public ResponseEntity<byte[]> downloadReport(@PathVariable String reportType) {
+        try {
+            byte[] pdfBytes = adminService.generateAdminReport(reportType);
+
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Raport_" + reportType + ".pdf")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

@@ -26,4 +26,15 @@ export class DashboardService {
   createLeaveRequest(requestData: any): Observable<any> {
     return this.http.post(this.requestApiUrl, requestData, { headers: this.getHeaders() });
   }
+
+  cancelLeaveRequest(id: number): Observable<any> {
+    return this.http.put(`${this.requestApiUrl}/${id}/cancel`, {}, { headers: this.getHeaders() });
+  }
+
+  downloadRequestPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.requestApiUrl}/${id}/pdf`, { 
+      headers: this.getHeaders(),
+      responseType: 'blob' 
+    });
+  }
 }

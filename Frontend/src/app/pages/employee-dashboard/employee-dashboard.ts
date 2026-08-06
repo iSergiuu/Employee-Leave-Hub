@@ -79,12 +79,22 @@ export class EmployeeDashboard implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    switch (status.toLowerCase()) {
-      case 'aprobat': return 'status-approved';
-      case 'în așteptare': return 'status-pending';
-      case 'respins': return 'status-rejected';
-      case 'ciornă': return 'status-draft';
-      default: return '';
+    switch (status.toUpperCase()) {
+      case 'APPROVED': 
+      case 'APROBAT': 
+        return 'status-approved';
+      case 'PENDING': 
+      case 'ÎN AȘTEPTARE': 
+        return 'status-pending';
+      case 'REJECTED': 
+      case 'CANCELLED': 
+      case 'RESPINS': 
+        return 'status-rejected';
+      case 'DRAFT': 
+      case 'CIORNĂ': 
+        return 'status-draft';
+      default: 
+        return '';
     }
   }
 
@@ -122,5 +132,33 @@ export class EmployeeDashboard implements OnInit {
     } else {
       this.requestForm.markAllAsTouched();
     }
+  }
+
+  cancelRequest(id: number): void {
+    if (confirm('Ești sigur că vrei să anulezi această cerere?')) {
+      this.dashboardService.cancelLeaveRequest(id).subscribe({
+        next: () => {
+          const userEmail = localStorage.getItem('email') || '';
+          this.fetchDashboardData(userEmail);
+        },
+        error: (err) => alert('Eroare la anulare: ' + (err.error || 'Cererea nu mai poate fi anulată.'))
+      });
+    }
+  }
+
+  downloadPdf(id: number): void {
+    this.dashboardService.downloadRequestPdf(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cerere_concediu_${id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => alert('Eroare la descărcarea documentului.')
+    });
   }
 }

@@ -76,4 +76,21 @@ public class LeaveRequestService {
 
         return leaveRequestRepository.save(request);
     }
+
+    public LeaveRequest findById(Long id) {
+        return leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cererea de concediu cu ID-ul " + id + " nu a fost găsită."));
+    }
+
+    @Transactional
+    public LeaveRequest cancelRequest(Long id) {
+        LeaveRequest request = findById(id);
+
+        if ("APPROVED".equalsIgnoreCase(request.getStatus()) || "REJECTED".equalsIgnoreCase(request.getStatus())) {
+            throw new RuntimeException("Cererea nu mai poate fi anulată deoarece a fost deja procesată (" + request.getStatus() + ").");
+        }
+
+        request.setStatus("CANCELLED");
+        return leaveRequestRepository.save(request);
+    }
 }

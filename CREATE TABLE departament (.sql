@@ -154,3 +154,9 @@ INSERT INTO leave_balance (empl_id, leave_type_id, year, total_allocated, days_u
 VALUES (43, 2, 2026, 10, 0);
 
 COMMIT;
+
+ALTER TABLE employee ADD deleted_at TIMESTAMP;
+ALTER TABLE department ADD deleted_at TIMESTAMP;
+ALTER TABLE public_holiday ADD deleted_at TIMESTAMP;
+
+COMMIT;
