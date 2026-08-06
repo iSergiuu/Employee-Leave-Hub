@@ -1,13 +1,26 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { Sidebar } from './layout/sidebar/sidebar'; 
+import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
+import { SidebarComponent } from './layout/sidebar/sidebar'; 
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Sidebar], 
+  imports: [RouterOutlet, CommonModule, SidebarComponent], 
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrls: ['./app.scss']
 })
 export class App {
+  showSidebar = false; 
+
+  constructor(private router: Router) {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      const hiddenRoutes = ['/login', '/register', '/'];
+      const currentUrl = event.urlAfterRedirects.split('?')[0];
+      this.showSidebar = !hiddenRoutes.includes(currentUrl);
+    });
+  }
 }

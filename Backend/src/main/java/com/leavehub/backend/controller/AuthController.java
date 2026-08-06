@@ -1,12 +1,16 @@
 package com.leavehub.backend.controller;
 
+import com.leavehub.backend.dto.AuthResponse;
 import com.leavehub.backend.dto.LoginRequest;
 import com.leavehub.backend.dto.RegisterRequest;
 import com.leavehub.backend.entity.Employee;
 import com.leavehub.backend.repository.EmployeeRepository;
+import com.leavehub.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +26,12 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
 
@@ -35,7 +45,6 @@ public class AuthController {
         newEmployee.setName(request.getFullname());
         newEmployee.setEmail(request.getEmail());
         newEmployee.setRole("User");
-
         newEmployee.setPassword(passwordEncoder.encode(request.getPassword()));
 
         employeeRepository.save(newEmployee);
@@ -46,18 +55,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest request) {
 
-        Optional<Employee> employeeOptional = employeeRepository.findByEmail(request.getEmail());
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
 
-        if (employeeOptional.isPresent()) {
-            Employee employee = employeeOptional.get();
+        Employee employee = employeeRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Angajatul nu a fost găsit"));
 
-            if (passwordEncoder.matches(request.getPassword(), employee.getPassword())) {
-                return ResponseEntity.ok("Logare reușită! (Mai târziu vom genera un token JWT aici)");
-            }
-        }
+        String jwt = jwtUtil.generateToken(employee.getEmail());
 
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body("Eroare: Email sau parolă incorecte!");
+        return ResponseEntity.ok(new AuthResponse(jwt, employee.getName(), employee.getRole()));
     }
 }

@@ -38,8 +38,24 @@ export class Login {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('userName', response.name);
+          localStorage.setItem('userRole', response.role || 'User');
+          localStorage.setItem('email', this.loginForm.value.email || '');
+
           this.showToast('Logare reușită!', true);
-          setTimeout(() => this.router.navigate(['/employee']), 1500);
+
+          setTimeout(() => {
+            const role = response.role ? response.role.toUpperCase() : 'USER';
+            
+            if (role === 'ADMIN') {
+              this.router.navigate(['/admin']);
+            } else if (role === 'MANAGER') {
+              this.router.navigate(['/manager']);
+            } else {
+              this.router.navigate(['/employee']);
+            }
+          }, 1500);
         },
         error: (err) => {
           this.showToast('Eroare: Email sau parolă incorecte!', false);

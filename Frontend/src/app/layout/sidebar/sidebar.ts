@@ -1,9 +1,30 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service'; 
 
 @Component({
   selector: 'app-sidebar',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss',
+  styleUrls: ['./sidebar.scss']
 })
-export class Sidebar {}
+export class SidebarComponent implements OnInit {
+  
+  userName: string = '';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    this.userName = this.authService.getUserName();
+  }
+
+  onLogout() {
+    this.authService.logout(); 
+    this.router.navigate(['/login']);
+  }
+}
