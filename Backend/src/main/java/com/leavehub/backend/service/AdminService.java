@@ -10,6 +10,7 @@ import com.leavehub.backend.repository.PublicHolidayRepository;
 import com.leavehub.backend.repository.LeaveWorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,21 +39,46 @@ public class AdminService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public void updateEmployeeRoleAndDept(Long employeeId, String role, Long deptId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Angajatul nu a fost gasit"));
 
-        employee.setRole(role);
-
+        Department dept = null;
         if (deptId != null) {
-            Department dept = departmentRepository.findById(deptId)
+            dept = departmentRepository.findById(deptId)
                     .orElseThrow(() -> new RuntimeException("Departamentul nu a fost gasit"));
-            employee.setDepartment(dept);
-        } else {
-            employee.setDepartment(null);
         }
 
+        // Salvăm modificările pe angajat
+        employee.setRole(role);
+        employee.setDepartment(dept);
         employeeRepository.save(employee);
+
+        // Gestionăm legătura de manager în tabela DEPARTMENT
+        if (dept != null) {
+            if ("Dept_resp".equalsIgnoreCase(role) || "Manager".equalsIgnoreCase(role)) {
+                // Dacă departamentul are deja un manager și nu este angajatul pe care îl edităm acum
+                if (dept.getManager() != null && !dept.getManager().getId().equals(employee.getId())) {
+                    throw new RuntimeException("Eroare: Departamentul " + dept.getDepartmentName() +
+                            " are deja un manager alocat (" + dept.getManager().getName() + ").");
+                }
+                dept.setManager(employee);
+                departmentRepository.save(dept);
+            } else {
+                // Dacă i se ia rolul de manager, îl scoatem de la conducerea departamentului
+                if (dept.getManager() != null && dept.getManager().getId().equals(employee.getId())) {
+                    dept.setManager(null);
+                    departmentRepository.save(dept);
+                }
+            }
+        } else {
+            // Dacă angajatul este mutat pe "Fără departament", verificăm dacă era manager undeva și îl scoatem
+            departmentRepository.findByManager(employee).ifPresent(d -> {
+                d.setManager(null);
+                departmentRepository.save(d);
+            });
+        }
     }
 
     public void deleteEmployee(Long id) {
@@ -65,6 +91,21 @@ public class AdminService {
             dto.setId(dept.getId());
             dto.setName(dept.getDepartmentName());
             dto.setMaxAbsentEmployees(dept.getMaxAbsentEmployees());
+
+            // Setăm numele managerului
+            if (dept.getManager() != null) {
+                dto.setManagerName(dept.getManager().getName());
+            } else {
+                dto.setManagerName("Fără Manager");
+            }
+
+            // Extragem lista cu numele tuturor angajaților din acest departament
+            List<String> employeeNames = employeeRepository.findByDepartmentId(dept.getId())
+                    .stream()
+                    .map(Employee::getName)
+                    .collect(Collectors.toList());
+            dto.setEmployeeNames(employeeNames);
+
             return dto;
         }).collect(Collectors.toList());
     }

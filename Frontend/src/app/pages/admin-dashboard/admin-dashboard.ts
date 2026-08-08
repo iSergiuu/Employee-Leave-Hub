@@ -4,6 +4,15 @@ import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
 
+export interface Department {
+  id: number;
+  name: string;
+  maxAbsentEmployees: number;
+  managerName?: string;
+  employeeNames?: string[];
+  isExpanded?: boolean; 
+}
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -21,11 +30,10 @@ export class AdminDashboard implements OnInit {
   deptForm!: FormGroup;
   holidayForm!: FormGroup;
 
-  departments: any[] = [];
+  departments: Department[] = [];
   employees: any[] = [];
   holidays: any[] = [];
   
-  // Date noi pentru rapoarte și cronologie
   timelineEvents: any[] = [];
   reportsList = [
     { code: 'pending', name: 'Cereri în Așteptare', description: 'Toate cererile care așteaptă aprobarea managerilor.' },
@@ -84,6 +92,11 @@ export class AdminDashboard implements OnInit {
     this.activeTab = tab;
   }
 
+  // Metodă nouă pentru controlul acordeonului de departamente
+  toggleDepartmentDetails(dept: Department): void {
+    dept.isExpanded = !dept.isExpanded;
+  }
+
   saveEmployeeChanges(employee: any): void {
     const payload = {
       role: employee.role,
@@ -91,15 +104,24 @@ export class AdminDashboard implements OnInit {
     };
     
     this.adminService.updateEmployee(employee.id, payload).subscribe({
-      next: () => alert('Modificările au fost salvate cu succes!'),
-      error: (err) => console.error(err)
+      next: () => {
+        alert('Modificările au fost salvate cu succes!');
+        this.loadDepartments(); 
+      },
+      error: (err) => {
+        console.error(err);
+        alert(err.error?.message || err.error || 'A apărut o eroare la salvare.');
+      }
     });
   }
 
   deleteEmployee(id: number): void {
     if (confirm('Atenție: Ești sigur că vrei să ștergi acest angajat?')) {
       this.adminService.deleteEmployee(id).subscribe({
-        next: () => this.loadEmployees(),
+        next: () => {
+          this.loadEmployees();
+          this.loadDepartments();
+        },
         error: (err) => alert(err.error || 'A apărut o eroare la ștergere.')
       });
     }

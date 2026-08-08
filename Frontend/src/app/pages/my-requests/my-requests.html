@@ -1,0 +1,107 @@
+<div class="enterprise-container fade-in">
+  <header class="enterprise-header slide-up">
+    <div class="header-titles">
+      <h1 class="title">Istoric Cereri Concediu</h1>
+      <p class="subtitle">Monitorizarea și administrarea cererilor curente și arhivate</p>
+    </div>
+  </header>
+
+  <div class="enterprise-content slide-up delay-1">
+    
+    <div class="filters-wrapper">
+      <button (click)="setFilterStatus('ALL')" [class.active]="statusFilter === 'ALL'" class="tab-btn">Toate Cererile</button>
+      <button (click)="setFilterStatus('PENDING')" [class.active]="statusFilter === 'PENDING'" class="tab-btn pending">În Așteptare</button>
+      <button (click)="setFilterStatus('APPROVED')" [class.active]="statusFilter === 'APPROVED'" class="tab-btn approved">Aprobate</button>
+      <button (click)="setFilterStatus('REJECTED')" [class.active]="statusFilter === 'REJECTED'" class="tab-btn rejected">Respinse</button>
+    </div>
+
+    <div class="advanced-controls">
+      <div class="control-group">
+        <input type="text" class="control-input" placeholder="Caută după tip..." [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()">
+      </div>
+      <div class="control-group">
+        <select class="control-select" [(ngModel)]="selectedYear" (ngModelChange)="applyFilters()">
+          <option value="ALL">Toți anii</option>
+          <option *ngFor="let year of availableYears" [value]="year">{{year}}</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <select class="control-select" [(ngModel)]="sortOption" (ngModelChange)="applyFilters()">
+          <option value="DATE_DESC">Dată (Cele mai noi)</option>
+          <option value="DATE_ASC">Dată (Cele mai vechi)</option>
+          <option value="ALPHA_ASC">Alfabetic (A-Z)</option>
+          <option value="ALPHA_DESC">Alfabetic (Z-A)</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="state-message">
+      <div class="spinner"></div>
+      <p>Se preiau datele din sistem...</p>
+    </div>
+    
+    <div *ngIf="errorMessage" class="state-message error-bg">
+      <p>Eroare de sistem: {{ errorMessage }}</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!isLoading && filteredRequests.length > 0">
+      <table class="enterprise-table">
+        <thead>
+          <tr>
+            <th>Tip Concediu</th>
+            <th>Perioadă</th>
+            <th>Status</th>
+            <th class="text-right">Acțiuni Disponibile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let req of filteredRequests; let i = index" 
+              class="table-row animate-row" 
+              [style.animation-delay]="(i * 0.03) + 's'">
+            
+            <td>
+              <div class="leave-type">
+                <div class="status-indicator" [ngClass]="req.status ? req.status.toLowerCase() : ''"></div>
+                <span class="font-medium">{{ req.leaveType?.name || 'Concediu' }}</span>
+              </div>
+            </td>
+            
+            <td>
+              <div class="date-range">
+                <span class="date">{{ req.startDate | date:'dd.MM.yyyy' }}</span>
+                <span class="separator">-</span>
+                <span class="date">{{ req.endDate | date:'dd.MM.yyyy' }}</span>
+              </div>
+            </td>
+            
+            <td>
+              <span class="badge" [ngClass]="req.status ? req.status.toLowerCase() : ''">
+                {{ req.status === 'APPROVED' ? 'Aprobat' : 
+                   req.status === 'PENDING' ? 'În așteptare' : 
+                   req.status === 'REJECTED' ? 'Respins' : 
+                   req.status === 'CANCELLED' ? 'Anulat' : req.status }}
+              </span>
+            </td>
+            
+            <td class="text-right">
+              <div class="action-buttons">
+                <button (click)="downloadPdf(req.id)" class="btn-action btn-pdf">
+                  Descarcă PDF
+                </button>
+                <button *ngIf="req.status === 'PENDING'" (click)="cancelRequest(req.id)" class="btn-action btn-cancel">
+                  Anulează Cererea
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!isLoading && filteredRequests.length === 0" class="state-message empty-state">
+      <h3>Nicio înregistrare găsită.</h3>
+      <p>Nu există date care să corespundă criteriilor de filtrare selectate.</p>
+    </div>
+
+  </div>
+</div>

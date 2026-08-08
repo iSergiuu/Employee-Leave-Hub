@@ -3,6 +3,7 @@ package com.leavehub.backend.dto;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class AdminDTO {
 
@@ -20,6 +21,10 @@ public class AdminDTO {
         private Long id;
         private String name;
         private Integer maxAbsentEmployees;
+
+        // Câmpurile noi necesare pentru frontend:
+        private String managerName;
+        private List<String> employeeNames;
     }
 
     @Data
@@ -28,6 +33,7 @@ public class AdminDTO {
         private LocalDate holidayDate;
         private String description;
     }
+
     @Data
     public static class TimelineEventInfo {
         private Long id;

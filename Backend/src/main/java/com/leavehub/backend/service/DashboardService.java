@@ -1,6 +1,7 @@
 package com.leavehub.backend.service;
 
 import com.leavehub.backend.dto.EmployeeDashboardDTO;
+import com.leavehub.backend.dto.LeaveRequestHistoryDTO;
 import com.leavehub.backend.entity.Employee;
 import com.leavehub.backend.entity.LeaveBalance;
 import com.leavehub.backend.entity.LeaveRequest;
@@ -67,7 +68,6 @@ public class DashboardService {
             String statusRO = translateStatus(req.getStatus());
             String actionDate = req.getCreatedAt() != null ? req.getCreatedAt().toLocalDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
 
-            // AICI ESTE MODIFICAREA: Trimitem req.getId() ca prim parametru
             return new EmployeeDashboardDTO.RequestDTO(req.getId(), typeName, period, req.getWorkingDays(), statusRO, actionDate);
         }).collect(Collectors.toList());
 
@@ -79,6 +79,29 @@ public class DashboardService {
         }).collect(Collectors.toList());
 
         return new EmployeeDashboardDTO(stats, requests, balanceDTOs);
+    }
+
+    public List<LeaveRequestHistoryDTO> getEmployeeLeaveHistory(String email) {
+        return leaveRequestRepository.findByEmployeeEmailOrderByCreatedAtDesc(email).stream().map(req -> {
+            LeaveRequestHistoryDTO.LeaveTypeDTO typeDTO = new LeaveRequestHistoryDTO.LeaveTypeDTO(
+                    req.getLeaveType().getId(),
+                    req.getLeaveType().getName()
+            );
+
+            LocalDate actionDate = req.getCreatedAt() != null
+                    ? req.getCreatedAt().toLocalDate()
+                    : LocalDate.now();
+
+            return new LeaveRequestHistoryDTO(
+                    req.getId(),
+                    typeDTO,
+                    req.getStartDate(),
+                    req.getEndDate(),
+                    req.getWorkingDays(),
+                    req.getStatus(),
+                    actionDate
+            );
+        }).collect(Collectors.toList());
     }
 
     private String translateStatus(String status) {

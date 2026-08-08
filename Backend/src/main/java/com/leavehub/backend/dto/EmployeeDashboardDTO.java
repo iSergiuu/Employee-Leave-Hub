@@ -2,10 +2,12 @@ package com.leavehub.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class EmployeeDashboardDTO {
     private StatsDTO summaryStats;
     private List<RequestDTO> recentRequests;
@@ -13,6 +15,7 @@ public class EmployeeDashboardDTO {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class StatsDTO {
         private int availableDays;
         private int usedDays;
@@ -22,8 +25,9 @@ public class EmployeeDashboardDTO {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class RequestDTO {
-        private Long id; // Aici am adăugat ID-ul cererii!
+        private Long id;
         private String type;
         private String period;
         private int days;
@@ -33,6 +37,7 @@ public class EmployeeDashboardDTO {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class BalanceDTO {
         private String type;
         private int used;

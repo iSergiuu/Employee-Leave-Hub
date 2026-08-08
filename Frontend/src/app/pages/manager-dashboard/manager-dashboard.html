@@ -13,16 +13,27 @@
         <h2>Cereri în așteptare și istoric</h2>
         
         <div class="filters" style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <input type="text" [(ngModel)]="filterEmployee" (input)="applyFilters()" placeholder="Caută după nume..." style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; min-width: 200px;">
+          <input type="text" [(ngModel)]="filterEmployee" (input)="applyFilters()" placeholder="Caută angajat..." style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; min-width: 160px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
           
-          <div class="custom-select-wrapper" style="min-width: 180px;">
-            <select [(ngModel)]="filterStatus" (change)="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; cursor: pointer;">
+          <div class="custom-select-wrapper" style="min-width: 150px;">
+            <select [(ngModel)]="filterLeaveType" (change)="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+              <option value="Toate">Toate Tipurile</option>
+              <option value="CO">Odihnă (CO)</option>
+              <option value="CM">Medical (CM)</option>
+              <option value="FP">Fără Plată (FP)</option>
+            </select>
+          </div>
+
+          <div class="custom-select-wrapper" style="min-width: 160px;">
+            <select [(ngModel)]="filterStatus" (change)="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
               <option value="Toate">Toate Statusurile</option>
               <option value="PENDING">În Așteptare</option>
               <option value="APPROVED">Aprobate</option>
               <option value="REJECTED">Respinse</option>
             </select>
           </div>
+
+          <input type="date" [(ngModel)]="filterDate" (change)="applyFilters()" title="Caută o dată anume în perioada cererii" style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; min-width: 140px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.02); color: #334155;">
         </div>
       </div>
       
@@ -74,7 +85,6 @@
     </section>
   </div>
 
-  <!-- Modal Aprobare / Respingere în stilul aplicației -->
   <div class="modal-overlay" *ngIf="isModalOpen">
     <div class="modal-card">
       

@@ -92,26 +92,75 @@
         </div>
         <div class="card-module table-module">
           <div class="table-wrapper">
-            <table class="modern-table">
+            
+            <table class="modern-table" style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Nume Departament</th>
-                  <th>Limită Absenți</th>
-                  <th>Acțiuni</th>
+                  <th style="padding: 16px; color: #64748b; font-size: 12px; font-weight: 600; text-align: left;">ID</th>
+                  <th style="padding: 16px; color: #64748b; font-size: 12px; font-weight: 600; text-align: left;">NUME DEPARTAMENT</th>
+                  <th style="padding: 16px; color: #64748b; font-size: 12px; font-weight: 600; text-align: left;">MANAGER</th>
+                  <th style="padding: 16px; color: #64748b; font-size: 12px; font-weight: 600; text-align: left;">LIMITĂ ABSENȚI</th>
+                  <th style="padding: 16px; color: #64748b; font-size: 12px; font-weight: 600; text-align: left;">ACȚIUNI</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let dept of departments">
-                  <td class="text-muted">#{{ dept.id }}</td>
-                  <td class="font-medium">{{ dept.name }}</td>
-                  <td>{{ dept.maxAbsentEmployees }} angajați simultan</td>
-                  <td>
-                    <button class="btn-delete" (click)="deleteDepartment(dept.id)">Șterge</button>
-                  </td>
-                </tr>
+                <ng-container *ngFor="let dept of departments">
+                  
+                  <!-- Rândul Principal (Clickabil) -->
+                  <tr (click)="toggleDepartmentDetails(dept)" style="cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s;" [style.backgroundColor]="dept.isExpanded ? '#f8fafc' : 'transparent'" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor=this.getAttribute('style').includes('#f8fafc') ? '#f8fafc' : 'transparent'">
+                    <td style="padding: 16px; font-size: 14px; color: #64748b;">#{{ dept.id }}</td>
+                    
+                    <td style="padding: 16px; font-size: 14px; font-weight: 600; color: #0f172a;">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <svg [style.transform]="dept.isExpanded ? 'rotate(180deg)' : 'rotate(0)'" style="transition: transform 0.3s ease; width: 18px; height: 18px; color: #3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                        {{ dept.name }}
+                      </div>
+                    </td>
+                    
+                    <td style="padding: 16px; font-size: 14px;">
+                      <span style="padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;" 
+                            [ngStyle]="{'background-color': dept.managerName !== 'Fără Manager' ? '#dcfce7' : '#f1f5f9', 'color': dept.managerName !== 'Fără Manager' ? '#166534' : '#64748b'}">
+                        {{ dept.managerName || 'Fără Manager' }}
+                      </span>
+                    </td>
+                    
+                    <td style="padding: 16px; font-size: 14px; color: #334155;">{{ dept.maxAbsentEmployees }} angajați simultan</td>
+                    
+                    <td style="padding: 16px;" (click)="$event.stopPropagation()">
+                      <button style="background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;" (click)="deleteDepartment(dept.id)" onmouseover="this.style.background='#ef4444'; this.style.color='white'" onmouseout="this.style.background='#fef2f2'; this.style.color='#ef4444'">
+                        Șterge
+                      </button>
+                    </td>
+                  </tr>
+            
+                  <!-- Rândul Ascuns (Se deschide la click) -->
+                  <tr *ngIf="dept.isExpanded">
+                    <td colspan="5" style="background-color: #f8fafc; padding: 24px 32px; border-bottom: 2px solid #e2e8f0; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);">
+                      
+                      <div style="font-size: 12px; color: #64748b; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Echipa ({{ dept.employeeNames?.length || 0 }} Angajați)
+                      </div>
+                      
+                      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <span *ngFor="let emp of dept.employeeNames" style="display: flex; align-items: center; gap: 6px; background: #ffffff; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; color: #334155; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width: 14px; height: 14px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                          {{ emp }}
+                        </span>
+                        
+                        <div *ngIf="!dept.employeeNames || dept.employeeNames.length === 0" style="color: #94a3b8; font-size: 14px; font-style: italic; padding: 8px 0;">
+                          Nu există niciun angajat înregistrat în acest departament.
+                        </div>
+                      </div>
+                      
+                    </td>
+                  </tr>
+            
+                </ng-container>
               </tbody>
             </table>
+
           </div>
         </div>
       </div>
@@ -144,8 +193,6 @@
           </div>
         </div>
       </div>
-
-      <!-- TAB-URI NOI: RAPOARTE ȘI CRONOLOGIE -->
 
       <div *ngIf="activeTab === 'reports'" class="tab-pane">
         <div class="pane-header">

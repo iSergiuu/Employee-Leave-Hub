@@ -18,6 +18,8 @@ export class ManagerDashboard implements OnInit {
   
   filterStatus: string = 'Toate';
   filterEmployee: string = '';
+  filterLeaveType: string = 'Toate';
+  filterDate: string = '';
 
   isModalOpen: boolean = false;
   actionType: 'APPROVE' | 'REJECT' = 'APPROVE';
@@ -38,7 +40,7 @@ export class ManagerDashboard implements OnInit {
         this.requests = data;
         this.applyFilters();
       },
-      error: (err) => console.error('Eroare la încărcarea cererilor:', err)
+      error: (err) => console.error(err)
     });
   }
 
@@ -46,7 +48,20 @@ export class ManagerDashboard implements OnInit {
     this.filteredRequests = this.requests.filter(req => {
       const matchStatus = this.filterStatus === 'Toate' || req.status.toUpperCase() === this.filterStatus.toUpperCase();
       const matchEmployee = req.employeeName.toLowerCase().includes(this.filterEmployee.toLowerCase());
-      return matchStatus && matchEmployee;
+      const matchType = this.filterLeaveType === 'Toate' || req.leaveType.includes(this.filterLeaveType);
+      
+      let matchDate = true;
+      if (this.filterDate) {
+        const dateObj = new Date(this.filterDate);
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const year = dateObj.getFullYear();
+        const formattedSearchDate = `${day}/${month}/${year}`;
+        
+        matchDate = req.period.includes(formattedSearchDate);
+      }
+
+      return matchStatus && matchEmployee && matchType && matchDate;
     });
   }
 
@@ -86,9 +101,9 @@ export class ManagerDashboard implements OnInit {
     actionObs.subscribe({
       next: () => {
         this.closeActionModal();
-        this.loadRequests(); // Reîncărcăm lista după acțiune
+        this.loadRequests();
       },
-      error: (err) => alert('Eroare: ' + (err.error || 'Acțiunea nu a putut fi procesată.'))
+      error: (err) => alert(err.error || 'A apărut o eroare.')
     });
   }
 }

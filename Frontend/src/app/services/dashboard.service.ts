@@ -23,6 +23,10 @@ export class DashboardService {
     return this.http.get(`${this.apiUrl}/employee/${email}`, { headers: this.getHeaders() });
   }
 
+  getEmployeeHistory(email: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/employee/${email}/history`, { headers: this.getHeaders() });
+  }
+
   createLeaveRequest(requestData: any): Observable<any> {
     return this.http.post(this.requestApiUrl, requestData, { headers: this.getHeaders() });
   }
