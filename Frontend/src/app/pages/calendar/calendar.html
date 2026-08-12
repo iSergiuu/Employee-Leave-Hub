@@ -1,0 +1,26 @@
+<div class="calendar-wrapper fade-in-up">
+  <div class="header-section">
+    <div>
+      <h2 class="page-title">Planificare Concedii</h2>
+      <p class="page-subtitle text-muted">Gestionează și vizualizează perioadele de absență</p>
+    </div>
+    
+    <div class="custom-toggle" *ngIf="userRole === 'Manager' || userRole === 'MANAGER' || userRole === 'Dept_resp' || userRole === 'ROLE_MANAGER' || userRole === 'Admin'">
+      <input type="radio" id="view-personal" name="calendarView" 
+             [checked]="currentView === 'personal'" 
+             (change)="onViewChange('personal')">
+      <label for="view-personal" class="toggle-label">Cererile Mele</label>
+      
+      <input type="radio" id="view-department" name="calendarView" 
+             [checked]="currentView === 'department'"
+             (change)="onViewChange('department')">
+      <label for="view-department" class="toggle-label">Departament</label>
+      
+      <div class="toggle-slider"></div>
+    </div>
+  </div>
+
+  <div class="calendar-card">
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </div>
+</div>

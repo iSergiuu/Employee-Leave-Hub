@@ -26,4 +26,5 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     );
 
     List<LeaveRequest> findByEmployeeEmailOrderByCreatedAtDesc(String email);
+
 }

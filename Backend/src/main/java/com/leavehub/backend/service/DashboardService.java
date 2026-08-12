@@ -9,6 +9,7 @@ import com.leavehub.backend.repository.EmployeeRepository;
 import com.leavehub.backend.repository.LeaveBalanceRepository;
 import com.leavehub.backend.repository.LeaveRequestRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -81,30 +82,34 @@ public class DashboardService {
         return new EmployeeDashboardDTO(stats, requests, balanceDTOs);
     }
 
+    @Transactional(readOnly = true)
     public List<LeaveRequestHistoryDTO> getEmployeeLeaveHistory(String email) {
         return leaveRequestRepository.findByEmployeeEmailOrderByCreatedAtDesc(email).stream().map(req -> {
-            LeaveRequestHistoryDTO.LeaveTypeDTO typeDTO = new LeaveRequestHistoryDTO.LeaveTypeDTO(
-                    req.getLeaveType().getId(),
-                    req.getLeaveType().getName()
-            );
+            Long typeId = (req.getLeaveType() != null) ? req.getLeaveType().getId() : 0L;
+            String typeName = (req.getLeaveType() != null) ? req.getLeaveType().getName() : "Concediu";
 
-            LocalDate actionDate = req.getCreatedAt() != null
-                    ? req.getCreatedAt().toLocalDate()
-                    : LocalDate.now();
+            LeaveRequestHistoryDTO.LeaveTypeDTO typeDTO = new LeaveRequestHistoryDTO.LeaveTypeDTO(typeId, typeName);
+
+            String startDate = (req.getStartDate() != null) ? req.getStartDate().toString() : "";
+            String endDate = (req.getEndDate() != null) ? req.getEndDate().toString() : "";
+            String actionDate = (req.getCreatedAt() != null) ? req.getCreatedAt().toLocalDate().toString() : LocalDate.now().toString();
+            String status = (req.getStatus() != null) ? req.getStatus() : "PENDING";
+            int days = (req.getWorkingDays() != null) ? req.getWorkingDays() : 0;
 
             return new LeaveRequestHistoryDTO(
                     req.getId(),
                     typeDTO,
-                    req.getStartDate(),
-                    req.getEndDate(),
-                    req.getWorkingDays(),
-                    req.getStatus(),
+                    startDate,
+                    endDate,
+                    days,
+                    status,
                     actionDate
             );
         }).collect(Collectors.toList());
     }
 
     private String translateStatus(String status) {
+        if (status == null) return "";
         return switch (status) {
             case "PENDING" -> "În Așteptare";
             case "APPROVED" -> "Aprobat";

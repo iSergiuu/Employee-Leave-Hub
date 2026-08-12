@@ -5,6 +5,7 @@ import { EmployeeDashboard } from './pages/employee-dashboard/employee-dashboard
 import { ManagerDashboard } from './pages/manager-dashboard/manager-dashboard';
 import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { MyRequestsComponent } from './pages/my-requests/my-requests'; 
+import { CalendarComponent } from './pages/calendar/calendar';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' }, 
@@ -17,6 +18,8 @@ export const routes: Routes = [
   { path: 'admin', component: AdminDashboard },
   
   { path: 'my-requests', component: MyRequestsComponent },
+  
+ { path: 'calendar', component: CalendarComponent },
   
   { path: '**', redirectTo: 'login' }
 ];

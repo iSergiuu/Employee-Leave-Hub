@@ -30,7 +30,7 @@ export class MyRequestsComponent implements OnInit {
   }
 
   loadRequests(): void {
-    const userEmail = localStorage.getItem('userEmail') || '';
+    const userEmail = localStorage.getItem('email') || localStorage.getItem('userEmail') || 'adresa_ta_reala@email.com';
     this.isLoading = true;
 
     this.dashboardService.getEmployeeHistory(userEmail).subscribe({
@@ -41,7 +41,7 @@ export class MyRequestsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err: any) => {
-        this.errorMessage = err.error || 'Eroare la preluarea datelor.';
+        this.errorMessage = err.error?.error || err.error?.message || err.message || 'Eroare la preluarea datelor.';
         this.isLoading = false;
         console.error(err);
       }
@@ -101,7 +101,9 @@ export class MyRequestsComponent implements OnInit {
           this.loadRequests();
         },
         error: (err: any) => {
-          alert('Eroare la anularea cererii: ' + (err.error || err.message));
+          const msg = err.error?.error || err.error?.message || err.message || JSON.stringify(err.error);
+          alert('Eroare la anularea cererii: ' + msg);
+          console.error('Detalii eroare:', err);
         }
       });
     }

@@ -31,6 +31,10 @@ export class DashboardService {
     return this.http.post(this.requestApiUrl, requestData, { headers: this.getHeaders() });
   }
 
+  getDepartmentRequests(email: string) {
+    return this.http.get<any[]>(`${this.requestApiUrl}/department?email=${email}`, { headers: this.getHeaders() });
+  }
+
   cancelLeaveRequest(id: number): Observable<any> {
     return this.http.put(`${this.requestApiUrl}/${id}/cancel`, {}, { headers: this.getHeaders() });
   }

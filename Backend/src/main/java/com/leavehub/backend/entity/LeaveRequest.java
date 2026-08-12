@@ -1,5 +1,6 @@
 package com.leavehub.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
@@ -37,4 +38,36 @@ public class LeaveRequest {
 
     @Column(name = "CREATED_AT", insertable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // --- GETTERS MANUALE PENTRU A FORȚA TRIMITEREA DATELOR ÎN JSON ---
+
+    @JsonProperty("id")
+    public Long getId() {
+        return id;
+    }
+
+    @JsonProperty("startDate")
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    @JsonProperty("endDate")
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    @JsonProperty("status")
+    public String getStatus() {
+        return status;
+    }
+
+    @JsonProperty("leaveType")
+    public LeaveType getLeaveType() {
+        return leaveType;
+    }
+
+    @JsonProperty("workingDays")
+    public Integer getWorkingDays() {
+        return workingDays;
+    }
 }

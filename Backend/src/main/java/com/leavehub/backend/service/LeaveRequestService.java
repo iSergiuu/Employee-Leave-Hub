@@ -56,6 +56,15 @@ public class LeaveRequestService {
         Employee employee = employeeRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Angajatul nu a fost găsit."));
 
+        // PROTECȚIE ANTI-SPAM (1 Minut Cooldown)
+        List<LeaveRequest> recentRequests = leaveRequestRepository.findTop5ByEmployeeIdOrderByCreatedAtDesc(employee.getId());
+        if (!recentRequests.isEmpty()) {
+            LeaveRequest lastRequest = recentRequests.get(0);
+            if (lastRequest.getCreatedAt() != null && lastRequest.getCreatedAt().isAfter(LocalDateTime.now().minusMinutes(1))) {
+                throw new RuntimeException("Protecție anti-spam: Te rugăm să aștepți 1 minut înainte de a trimite o nouă cerere.");
+            }
+        }
+
         LeaveType leaveType = leaveTypeRepository.findById(dto.getLeaveTypeId())
                 .orElseThrow(() -> new RuntimeException("Tipul de concediu nu a fost găsit."));
 
@@ -105,8 +114,20 @@ public class LeaveRequestService {
             throw new RuntimeException("Cererea nu mai poate fi anulată deoarece a fost deja procesată (" + request.getStatus() + ").");
         }
 
+        String oldStatus = request.getStatus();
         request.setStatus("CANCELLED");
-        return leaveRequestRepository.save(request);
+        LeaveRequest savedRequest = leaveRequestRepository.save(request);
+
+        LeaveWorkflow workflow = new LeaveWorkflow();
+        workflow.setLeaveRequest(savedRequest);
+        workflow.setEmployee(request.getEmployee());
+        workflow.setOldStatus(oldStatus);
+        workflow.setCurrentStatus("CANCELLED");
+        workflow.setChangedAt(LocalDateTime.now());
+        workflow.setComments("Cerere anulată voluntar de către angajat.");
+        leaveWorkflowRepository.save(workflow);
+
+        return savedRequest;
     }
 
     public boolean hasOverlapWarning(Long requestId) {
@@ -142,5 +163,16 @@ public class LeaveRequestService {
         }
 
         return false;
+    }
+
+    public List<LeaveRequest> getDepartmentRequestsByEmail(String email) {
+        Employee manager = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Managerul nu a fost găsit."));
+
+        if (manager.getDepartment() == null) {
+            return List.of();
+        }
+
+        return leaveRequestRepository.findByEmployeeDepartmentIdOrderByCreatedAtDesc(manager.getDepartment().getId());
     }
 }
