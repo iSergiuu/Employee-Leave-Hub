@@ -155,26 +155,4 @@ public class AdminService {
                     return dto;
                 }).collect(Collectors.toList());
     }
-
-    public byte[] generateAdminReport(String reportType) {
-        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-        com.lowagie.text.Document document = new com.lowagie.text.Document();
-
-        try {
-            com.lowagie.text.pdf.PdfWriter.getInstance(document, out);
-            document.open();
-
-            document.add(new com.lowagie.text.Paragraph("RAPORT ADMINISTRATIV LEAVE HUB",
-                    com.lowagie.text.FontFactory.getFont(com.lowagie.text.FontFactory.HELVETICA_BOLD, 18)));
-            document.add(new com.lowagie.text.Paragraph("\nTip Raport: " + reportType.toUpperCase()));
-            document.add(new com.lowagie.text.Paragraph("Data generării: " + java.time.LocalDate.now()));
-            document.add(new com.lowagie.text.Paragraph("\nAcest document este generat automat din sistem."));
-
-            document.close();
-        } catch (Exception e) {
-            throw new RuntimeException("Eroare la generarea PDF-ului", e);
-        }
-
-        return out.toByteArray();
-    }
 }

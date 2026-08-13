@@ -1,11 +1,13 @@
 package com.leavehub.backend.service;
 
 import com.leavehub.backend.entity.LeaveRequest;
+import com.leavehub.backend.repository.LeaveRequestRepository;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.draw.LineSeparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -13,9 +15,14 @@ import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PdfGeneratorService {
+
+    private final LeaveRequestRepository leaveRequestRepository;
 
     public byte[] generateLeaveRequestPdf(LeaveRequest request) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -164,12 +171,12 @@ public class PdfGeneratorService {
 
             PdfPTable table = new PdfPTable(5);
             table.setWidthPercentage(100);
-            table.setWidths(new float[]{3f, 3f, 3.5f, 1.5f, 2f}); // Dimensiuni relative pentru coloane
+            table.setWidths(new float[]{3f, 3f, 3.5f, 1.5f, 2f});
 
             String[] headers = {"Nume Angajat", "Tip Concediu", "Perioada", "Zile", "Status"};
             for (String h : headers) {
                 PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
-                cell.setBackgroundColor(new Color(240, 240, 240)); // Gri deschis
+                cell.setBackgroundColor(new Color(240, 240, 240));
                 cell.setPadding(6);
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(cell);
@@ -194,7 +201,6 @@ public class PdfGeneratorService {
 
             document.add(table);
 
-            // Footer
             document.add(new Paragraph("\n\n\n"));
             Paragraph footer = new Paragraph("Document generat automat de platforma Leave Hub.", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 9));
             footer.setAlignment(Element.ALIGN_CENTER);
@@ -206,6 +212,183 @@ public class PdfGeneratorService {
         }
 
         return out.toByteArray();
+    }
+
+    public byte[] generateAdminReport(String reportType) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document();
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+            PdfPTable headerTable = new PdfPTable(2);
+            headerTable.setWidthPercentage(100);
+            PdfPCell leftCell = new PdfPCell(new Phrase("Leave Hub S.R.L. - Raport Admin", headerFont));
+            leftCell.setBorder(Rectangle.NO_BORDER);
+            PdfPCell rightCell = new PdfPCell(new Phrase("Data generării: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), normalFont));
+            rightCell.setBorder(Rectangle.NO_BORDER);
+            rightCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            headerTable.addCell(leftCell);
+            headerTable.addCell(rightCell);
+            document.add(headerTable);
+
+            LineSeparator ls = new LineSeparator();
+            ls.setLineColor(Color.LIGHT_GRAY);
+            document.add(new Chunk(ls));
+            document.add(new Paragraph("\n"));
+
+            String titluRaport = "RAPORT ADMINISTRATIV";
+            if ("pending".equals(reportType)) titluRaport = "CERERI DE CONCEDIU ÎN AȘTEPTARE";
+            else if ("balance".equals(reportType)) titluRaport = "SITUAȚIE ZILE CONSUMATE PER DEPARTAMENT";
+            else if ("usage".equals(reportType)) titluRaport = "STATISTICI UTILIZARE CONCEDII";
+
+            Paragraph title = new Paragraph(titluRaport, titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+            document.add(new Paragraph("\n\n"));
+
+            if ("pending".equals(reportType)) {
+                buildPendingReport(document, headerFont, normalFont);
+            } else if ("balance".equals(reportType)) {
+                buildBalanceReport(document, headerFont, normalFont);
+            } else if ("usage".equals(reportType)) {
+                buildUsageReport(document, headerFont, normalFont);
+            } else {
+                document.add(new Paragraph("Tip de raport necunoscut."));
+            }
+
+            document.add(new Paragraph("\n\n\n"));
+            Paragraph footer = new Paragraph("Document generat automat de platforma Leave Hub - Modulul Administrator.", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 9));
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
+
+            document.close();
+        } catch (Exception e) {
+            throw new RuntimeException("Eroare la generarea PDF-ului admin", e);
+        }
+
+        return out.toByteArray();
+    }
+
+    private void buildPendingReport(Document document, Font headerFont, Font normalFont) throws DocumentException {
+        List<LeaveRequest> pendingRequests = leaveRequestRepository.findAll().stream()
+                .filter(r -> "PENDING".equalsIgnoreCase(r.getStatus()))
+                .collect(Collectors.toList());
+
+        if (pendingRequests.isEmpty()) {
+            document.add(new Paragraph("Nu există nicio cerere în așteptare în acest moment.", normalFont));
+            return;
+        }
+
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{2.5f, 2.5f, 2f, 3f, 1.5f});
+
+        String[] headers = {"Angajat", "Departament", "Tip Concediu", "Perioada", "Zile"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
+            cell.setBackgroundColor(new Color(240, 240, 240));
+            cell.setPadding(6);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(cell);
+        }
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        for (LeaveRequest req : pendingRequests) {
+            String empName = req.getEmployee() != null ? req.getEmployee().getName() : "N/A";
+            String deptName = (req.getEmployee() != null && req.getEmployee().getDepartment() != null) ? req.getEmployee().getDepartment().getDepartmentName() : "N/A";
+            String type = req.getLeaveType() != null ? req.getLeaveType().getCode() : "N/A";
+            String period = (req.getStartDate() != null ? req.getStartDate().format(fmt) : "") + " - " + (req.getEndDate() != null ? req.getEndDate().format(fmt) : "");
+
+            table.addCell(new PdfPCell(new Phrase(empName, normalFont)));
+            table.addCell(new PdfPCell(new Phrase(deptName, normalFont)));
+            table.addCell(new PdfPCell(new Phrase(type, normalFont)));
+            table.addCell(new PdfPCell(new Phrase(period, normalFont)));
+
+            PdfPCell daysCell = new PdfPCell(new Phrase(String.valueOf(req.getWorkingDays()), normalFont));
+            daysCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(daysCell);
+        }
+        document.add(table);
+    }
+
+    private void buildBalanceReport(Document document, Font headerFont, Font normalFont) throws DocumentException {
+        List<LeaveRequest> allApproved = leaveRequestRepository.findAll().stream()
+                .filter(r -> "APPROVED".equalsIgnoreCase(r.getStatus()))
+                .filter(r -> r.getEmployee() != null && r.getEmployee().getDepartment() != null)
+                .collect(Collectors.toList());
+
+        PdfPTable table = new PdfPTable(3);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{4f, 3f, 3f});
+
+        String[] headers = {"Nume Departament", "Nr. Total Cereri Aprobate", "Zile Consumate (Echipă)"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
+            cell.setBackgroundColor(new Color(240, 240, 240));
+            cell.setPadding(6);
+            table.addCell(cell);
+        }
+
+        Map<String, List<LeaveRequest>> byDept = allApproved.stream()
+                .collect(Collectors.groupingBy(r -> r.getEmployee().getDepartment().getDepartmentName()));
+
+        if (byDept.isEmpty()) {
+            document.add(new Paragraph("Nu există date suficiente pentru a genera rapoarte per departament (nu sunt cereri aprobate).", normalFont));
+            return;
+        }
+
+        for (Map.Entry<String, List<LeaveRequest>> entry : byDept.entrySet()) {
+            int totalDays = entry.getValue().stream().mapToInt(r -> r.getWorkingDays() != null ? r.getWorkingDays() : 0).sum();
+            int totalReqs = entry.getValue().size();
+
+            table.addCell(new PdfPCell(new Phrase(entry.getKey(), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(totalReqs), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(totalDays), normalFont)));
+        }
+        document.add(table);
+    }
+
+    private void buildUsageReport(Document document, Font headerFont, Font normalFont) throws DocumentException {
+        List<LeaveRequest> allRequests = leaveRequestRepository.findAll();
+
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{4f, 2f, 2f, 2f});
+
+        String[] headers = {"Tip Concediu", "Total Solicitări", "Aprobate", "Respinse / Anulate"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
+            cell.setBackgroundColor(new Color(240, 240, 240));
+            cell.setPadding(6);
+            table.addCell(cell);
+        }
+
+        Map<String, List<LeaveRequest>> byType = allRequests.stream()
+                .filter(r -> r.getLeaveType() != null)
+                .collect(Collectors.groupingBy(r -> r.getLeaveType().getName()));
+
+        if (byType.isEmpty()) {
+            document.add(new Paragraph("Nu există cereri înregistrate în sistem.", normalFont));
+            return;
+        }
+
+        for (Map.Entry<String, List<LeaveRequest>> entry : byType.entrySet()) {
+            int total = entry.getValue().size();
+            long approved = entry.getValue().stream().filter(r -> "APPROVED".equalsIgnoreCase(r.getStatus())).count();
+            long rejected = entry.getValue().stream().filter(r -> "REJECTED".equalsIgnoreCase(r.getStatus()) || "CANCELLED".equalsIgnoreCase(r.getStatus())).count();
+
+            table.addCell(new PdfPCell(new Phrase(entry.getKey(), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(total), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(approved), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(rejected), normalFont)));
+        }
+        document.add(table);
     }
 
     private String translateStatus(String status) {

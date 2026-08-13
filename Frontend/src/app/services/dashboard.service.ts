@@ -9,6 +9,7 @@ export class DashboardService {
   
   private apiUrl = 'http://localhost:8080/api/dashboard';
   private requestApiUrl = 'http://localhost:8080/api/leave-requests';
+  private adminApiUrl = 'http://localhost:8080/api/admin';
 
   constructor(private http: HttpClient) {}
 
@@ -51,5 +52,9 @@ export class DashboardService {
       headers: this.getHeaders(),
       responseType: 'blob'
     });
+  }
+
+  getHolidays(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.adminApiUrl}/holidays`, { headers: this.getHeaders() });
   }
 }

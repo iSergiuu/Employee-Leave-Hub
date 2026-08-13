@@ -2,6 +2,7 @@ package com.leavehub.backend.controller;
 
 import com.leavehub.backend.dto.AdminDTO;
 import com.leavehub.backend.service.AdminService;
+import com.leavehub.backend.service.PdfGeneratorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class AdminController {
 
     private final AdminService adminService;
+    private final PdfGeneratorService pdfGeneratorService;
 
     @lombok.Data
     public static class UpdateRoleDeptRequest {
@@ -97,7 +99,7 @@ public class AdminController {
     @GetMapping("/reports/{reportType}")
     public ResponseEntity<byte[]> downloadReport(@PathVariable String reportType) {
         try {
-            byte[] pdfBytes = adminService.generateAdminReport(reportType);
+            byte[] pdfBytes = pdfGeneratorService.generateAdminReport(reportType);
 
             return ResponseEntity.ok()
                     .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Raport_" + reportType + ".pdf")

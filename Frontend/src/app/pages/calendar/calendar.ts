@@ -19,6 +19,7 @@ export class CalendarComponent implements OnInit {
   isManagerOrAdmin: boolean = false; 
   
   currentDisplayedDate: Date = new Date();
+  holidayEvents: any[] = [];
 
   calendarOptions: any = {
     plugins: [dayGridPlugin, interactionPlugin],
@@ -46,7 +47,30 @@ export class CalendarComponent implements OnInit {
     this.userEmail = localStorage.getItem('email') || '';
     this.isManagerOrAdmin = ['Manager', 'MANAGER', 'Dept_resp', 'ROLE_MANAGER', 'Admin'].includes(this.userRole);
     
+    this.loadHolidays();
     this.loadCalendarData('personal');
+  }
+
+  loadHolidays(): void {
+    this.dashboardService.getHolidays().subscribe({
+      next: (holidays: any[]) => {
+        this.holidayEvents = holidays.map(h => {
+          const rawDate = h.holidayDate;
+          const parseDate = (d: any) => Array.isArray(d) ? new Date(d[0], d[1] - 1, d[2]) : new Date(d);
+          const dateObj = parseDate(rawDate);
+
+          return {
+            title: `🌟 ${h.description}`,
+            start: dateObj.toISOString().split('T')[0],
+            color: '#8b5cf6',
+            display: 'block',
+            allDay: true
+          };
+        });
+        this.loadCalendarData(this.currentView);
+      },
+      error: (err) => console.error(err)
+    });
   }
 
   handleDatesSet(arg: any): void {
@@ -85,12 +109,12 @@ export class CalendarComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
       },
-      error: (err) => alert('Eroare la descărcarea raportului.')
+      error: (err) => alert(err)
     });
   }
 
   mapRequestsToEvents(requests: any[], isPersonal: boolean): void {
-    const events = requests
+    const leaveEvents = requests
       .map(req => {
         const rawStart = req.startDate || req.start_date;
         const rawEnd = req.endDate || req.end_date;
@@ -119,6 +143,9 @@ export class CalendarComponent implements OnInit {
       })
       .filter(event => event !== null);
 
-    this.calendarOptions = { ...this.calendarOptions, events: events };
+    this.calendarOptions = { 
+      ...this.calendarOptions, 
+      events: [...this.holidayEvents, ...leaveEvents] 
+    };
   }
 }
