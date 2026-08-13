@@ -16,6 +16,9 @@ export class CalendarComponent implements OnInit {
   userRole: string = '';
   userEmail: string = '';
   currentView: string = 'personal';
+  isManagerOrAdmin: boolean = false; 
+  
+  currentDisplayedDate: Date = new Date();
 
   calendarOptions: any = {
     plugins: [dayGridPlugin, interactionPlugin],
@@ -32,7 +35,8 @@ export class CalendarComponent implements OnInit {
     buttonText: { 
       today: 'Azi' 
     },
-    events: []
+    events: [],
+    datesSet: this.handleDatesSet.bind(this) 
   };
 
   constructor(private dashboardService: DashboardService) {}
@@ -40,8 +44,13 @@ export class CalendarComponent implements OnInit {
   ngOnInit(): void {
     this.userRole = (localStorage.getItem('userRole') || 'User').trim();
     this.userEmail = localStorage.getItem('email') || '';
+    this.isManagerOrAdmin = ['Manager', 'MANAGER', 'Dept_resp', 'ROLE_MANAGER', 'Admin'].includes(this.userRole);
     
     this.loadCalendarData('personal');
+  }
+
+  handleDatesSet(arg: any): void {
+    this.currentDisplayedDate = arg.view.calendar.getDate();
   }
 
   onViewChange(view: string): void {
@@ -50,14 +59,12 @@ export class CalendarComponent implements OnInit {
   }
 
   loadCalendarData(view: string): void {
-    const isManagerOrAdmin = ['Manager', 'MANAGER', 'Dept_resp', 'ROLE_MANAGER', 'Admin'].includes(this.userRole);
-
     if (view === 'personal') {
       this.dashboardService.getEmployeeHistory(this.userEmail).subscribe({
         next: (requests: any[]) => this.mapRequestsToEvents(requests, true),
         error: (err: any) => console.error(err)
       });
-    } else if (view === 'department' && isManagerOrAdmin) {
+    } else if (view === 'department' && this.isManagerOrAdmin) {
       this.dashboardService.getDepartmentRequests(this.userEmail).subscribe({
         next: (requests: any[]) => this.mapRequestsToEvents(requests, false),
         error: (err: any) => console.error(err)
@@ -65,38 +72,40 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  mapRequestsToEvents(requests: any[], isPersonal: boolean): void {
-    console.log(`Date primite pentru tab-ul ${isPersonal ? 'Personal' : 'Departament'}:`, requests);
+  downloadDepartmentReport(): void {
+    const month = this.currentDisplayedDate.getMonth() + 1; 
+    const year = this.currentDisplayedDate.getFullYear();
 
+    this.dashboardService.downloadDepartmentReportPdf(this.userEmail, month, year).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Raport_Departament_${month}_${year}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => alert('Eroare la descărcarea raportului.')
+    });
+  }
+
+  mapRequestsToEvents(requests: any[], isPersonal: boolean): void {
     const events = requests
       .map(req => {
         const rawStart = req.startDate || req.start_date;
         const rawEnd = req.endDate || req.end_date;
 
-        if (!rawStart || !rawEnd) {
-          return null;
-        }
+        if (!rawStart || !rawEnd) return null;
 
         let eventColor = '#3b82f6';
-        
-        if (req.status === 'APPROVED') {
-          eventColor = '#10b981';
-        } else if (req.status === 'PENDING') {
-          eventColor = '#f59e0b';
-        } else if (req.status === 'REJECTED' || req.status === 'CANCELLED') {
-          eventColor = '#ef4444';
-        }
+        if (req.status === 'APPROVED') eventColor = '#10b981';
+        else if (req.status === 'PENDING') eventColor = '#f59e0b';
+        else if (req.status === 'REJECTED' || req.status === 'CANCELLED') eventColor = '#ef4444';
 
-        const parseDate = (d: any) => {
-          if (Array.isArray(d)) {
-            return new Date(d[0], d[1] - 1, d[2]);
-          }
-          return new Date(d);
-        };
+        const parseDate = (d: any) => Array.isArray(d) ? new Date(d[0], d[1] - 1, d[2]) : new Date(d);
 
         const startDate = parseDate(rawStart);
         const endDate = parseDate(rawEnd);
-        
         endDate.setDate(endDate.getDate() + 1);
 
         return {
@@ -110,11 +119,6 @@ export class CalendarComponent implements OnInit {
       })
       .filter(event => event !== null);
 
-    console.log("Evenimente formatate trimise catre FullCalendar:", events);
-
-    this.calendarOptions = {
-      ...this.calendarOptions,
-      events: events
-    };
+    this.calendarOptions = { ...this.calendarOptions, events: events };
   }
 }

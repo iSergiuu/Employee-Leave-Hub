@@ -13,6 +13,11 @@ import { AuthService } from '../../services/auth.service';
 export class SidebarComponent implements OnInit {
   
   userName: string = '';
+  userRole: string = '';
+  displayRole: string = 'Angajat';
+  
+  isManager: boolean = false;
+  isAdmin: boolean = false;
 
   constructor(
     private router: Router,
@@ -21,10 +26,23 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
     this.userName = this.authService.getUserName();
+    this.userRole = (localStorage.getItem('userRole') || 'Angajat').trim();
+
+    this.isManager = ['Manager', 'MANAGER', 'Dept_resp', 'ROLE_MANAGER', 'Admin', 'ADMIN'].includes(this.userRole);
+    this.isAdmin = ['Admin', 'ADMIN', 'ROLE_ADMIN'].includes(this.userRole);
+
+    if (this.isAdmin) {
+      this.displayRole = 'Administrator';
+    } else if (this.isManager) {
+      this.displayRole = 'Manager';
+    } else {
+      this.displayRole = 'Angajat';
+    }
   }
 
   onLogout() {
     this.authService.logout(); 
+    localStorage.clear(); 
     this.router.navigate(['/login']);
   }
 }

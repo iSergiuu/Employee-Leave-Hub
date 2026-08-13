@@ -38,17 +38,39 @@ public class DashboardService {
 
         int currentYear = LocalDate.now().getYear();
 
+        // 1. Preluăm toate cererile APROBATE din anul curent pentru a calcula dinamic zilele
+        List<LeaveRequest> currentYearApprovedRequests = leaveRequestRepository.findByEmployeeEmailOrderByCreatedAtDesc(email).stream()
+                .filter(req -> "APPROVED".equalsIgnoreCase(req.getStatus()))
+                .filter(req -> req.getStartDate() != null && req.getStartDate().getYear() == currentYear)
+                .collect(Collectors.toList());
+
         List<LeaveBalance> balances = leaveBalanceRepository.findAll().stream()
                 .filter(b -> b.getEmployee().getId().equals(employee.getId()) && b.getYear().equals(currentYear))
                 .collect(Collectors.toList());
 
         int totalAvailable = 0;
         int totalUsed = 0;
+        List<EmployeeDashboardDTO.BalanceDTO> balanceDTOs = new java.util.ArrayList<>();
+
+        // 2. Parcurgem balanța, dar folosim calculele noastre reale în loc de valorile statice din DB
         for (LeaveBalance b : balances) {
+
+            // Calculăm zilele folosite real pentru tipul curent de concediu (ex: doar CO sau doar CM)
+            int realUsedDays = currentYearApprovedRequests.stream()
+                    .filter(req -> req.getLeaveType() != null && req.getLeaveType().getId().equals(b.getLeaveType().getId()))
+                    .mapToInt(req -> req.getWorkingDays() != null ? req.getWorkingDays() : 0)
+                    .sum();
+
             if ("CO".equals(b.getLeaveType().getCode())) {
-                totalAvailable += (b.getTotalAllocated() - b.getDaysUsed());
-                totalUsed += b.getDaysUsed();
+                totalAvailable += (b.getTotalAllocated() - realUsedDays);
+                totalUsed += realUsedDays;
             }
+
+            String typeName = b.getLeaveType().getName() + " (" + b.getLeaveType().getCode() + ")";
+            String colorClass = "CO".equals(b.getLeaveType().getCode()) ? "progress-blue" : "progress-green";
+
+            // Trimitem 'realUsedDays' către Angular
+            balanceDTOs.add(new EmployeeDashboardDTO.BalanceDTO(typeName, realUsedDays, b.getTotalAllocated(), colorClass));
         }
 
         int pendingCount = leaveRequestRepository.countByEmployeeIdAndStatus(employee.getId(), "PENDING");
@@ -64,19 +86,12 @@ public class DashboardService {
         DateTimeFormatter dayMonthFormatter = DateTimeFormatter.ofPattern("dd MMM", new Locale("ro", "RO"));
 
         List<EmployeeDashboardDTO.RequestDTO> requests = recentRequestsList.stream().map(req -> {
-            String typeName = req.getLeaveType().getName() + " (" + req.getLeaveType().getCode() + ")";
+            String typeName = (req.getLeaveType() != null) ? req.getLeaveType().getName() + " (" + req.getLeaveType().getCode() + ")" : "Concediu";
             String period = req.getStartDate().format(dayMonthFormatter) + " - " + req.getEndDate().format(dateFormatter);
             String statusRO = translateStatus(req.getStatus());
             String actionDate = req.getCreatedAt() != null ? req.getCreatedAt().toLocalDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
 
             return new EmployeeDashboardDTO.RequestDTO(req.getId(), typeName, period, req.getWorkingDays(), statusRO, actionDate);
-        }).collect(Collectors.toList());
-
-        List<EmployeeDashboardDTO.BalanceDTO> balanceDTOs = balances.stream().map(b -> {
-            String typeName = b.getLeaveType().getName() + " (" + b.getLeaveType().getCode() + ")";
-            String colorClass = "CO".equals(b.getLeaveType().getCode()) ? "progress-blue" : "progress-green";
-
-            return new EmployeeDashboardDTO.BalanceDTO(typeName, b.getDaysUsed(), b.getTotalAllocated(), colorClass);
         }).collect(Collectors.toList());
 
         return new EmployeeDashboardDTO(stats, requests, balanceDTOs);

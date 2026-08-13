@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -60,13 +61,11 @@ public class LeaveRequestController {
         }
     }
 
-    // --- ENDPOINT PENTRU CALENDARUL DE DEPARTAMENT (CU MAPARE MANUALĂ) ---
     @GetMapping("/department")
     public ResponseEntity<?> getDepartmentRequests(@RequestParam String email) {
         try {
             List<LeaveRequest> requests = leaveRequestService.getDepartmentRequestsByEmail(email);
 
-            // Construim manual pachetul JSON pentru a ocoli orice blocaj din Jackson/Hibernate
             List<Map<String, Object>> responseList = new java.util.ArrayList<>();
 
             for (LeaveRequest req : requests) {
@@ -78,7 +77,6 @@ public class LeaveRequestController {
                 map.put("workingDays", req.getWorkingDays());
                 map.put("createdAt", req.getCreatedAt());
 
-                // Adăugăm doar datele esențiale din relații, evitând tot obiectul Employee care poate cauza probleme
                 if (req.getLeaveType() != null) {
                     map.put("leaveType", Map.of("code", req.getLeaveType().getCode()));
                 }
@@ -92,6 +90,43 @@ public class LeaveRequestController {
             return ResponseEntity.ok(responseList);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/department/report/pdf")
+    public ResponseEntity<byte[]> downloadDepartmentReportPdf(
+            @RequestParam String email,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+        try {
+            List<LeaveRequest> requests = leaveRequestService.getDepartmentRequestsByEmail(email);
+
+            int targetMonth = (month != null) ? month : LocalDate.now().getMonthValue();
+            int targetYear = (year != null) ? year : LocalDate.now().getYear();
+
+            LocalDate startOfTargetMonth = LocalDate.of(targetYear, targetMonth, 1);
+            LocalDate endOfTargetMonth = startOfTargetMonth.withDayOfMonth(startOfTargetMonth.lengthOfMonth());
+
+            List<LeaveRequest> filteredRequests = requests.stream()
+                    .filter(r -> r.getStartDate() != null && r.getEndDate() != null)
+                    .filter(r -> !r.getStartDate().isAfter(endOfTargetMonth) && !r.getEndDate().isBefore(startOfTargetMonth))
+                    .toList();
+
+            String deptName = "Departament";
+            if (!filteredRequests.isEmpty() && filteredRequests.get(0).getEmployee().getDepartment() != null) {
+                deptName = filteredRequests.get(0).getEmployee().getDepartment().getDepartmentName();
+            } else if (!requests.isEmpty() && requests.get(0).getEmployee().getDepartment() != null) {
+                deptName = requests.get(0).getEmployee().getDepartment().getDepartmentName();
+            }
+
+            byte[] pdfBytes = pdfGeneratorService.generateDepartmentReportPdf(filteredRequests, deptName);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=raport_departament_" + targetMonth + "_" + targetYear + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

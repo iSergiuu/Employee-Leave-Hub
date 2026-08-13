@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -15,15 +16,25 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @lombok.Data
+    public static class UpdateRoleDeptRequest {
+        private String role;
+        private Long deptId;
+    }
+
     @GetMapping("/employees")
     public ResponseEntity<List<AdminDTO.EmployeeInfo>> getEmployees() {
         return ResponseEntity.ok(adminService.getAllEmployees());
     }
 
     @PutMapping("/employees/{id}")
-    public ResponseEntity<Void> updateEmployee(@PathVariable Long id, @RequestBody AdminDTO.EmployeeInfo dto) {
-        adminService.updateEmployeeRoleAndDept(id, dto.getRole(), dto.getDeptId());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody UpdateRoleDeptRequest dto) {
+        try {
+            adminService.updateEmployeeRoleAndDept(id, dto.getRole(), dto.getDeptId());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Eroare la salvare: " + e.getMessage()));
+        }
     }
 
     @DeleteMapping("/employees/{id}")
@@ -77,6 +88,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Eroare la stergerea sarbatorii.");
         }
     }
+
     @GetMapping("/timeline")
     public ResponseEntity<List<AdminDTO.TimelineEventInfo>> getTimeline() {
         return ResponseEntity.ok(adminService.getWorkflowTimeline());

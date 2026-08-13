@@ -84,7 +84,7 @@ export class AdminDashboard implements OnInit {
   loadTimeline(): void {
     this.adminService.getWorkflowTimeline().subscribe({
       next: (data) => this.timelineEvents = data,
-      error: (err) => console.error('Eroare la încărcarea cronologiei', err)
+      error: (err) => console.error(err)
     });
   }
 
@@ -92,7 +92,6 @@ export class AdminDashboard implements OnInit {
     this.activeTab = tab;
   }
 
-  // Metodă nouă pentru controlul acordeonului de departamente
   toggleDepartmentDetails(dept: Department): void {
     dept.isExpanded = !dept.isExpanded;
   }
@@ -100,17 +99,31 @@ export class AdminDashboard implements OnInit {
   saveEmployeeChanges(employee: any): void {
     const payload = {
       role: employee.role,
-      deptId: employee.deptId
+      deptId: employee.deptId ? Number(employee.deptId) : null
     };
     
     this.adminService.updateEmployee(employee.id, payload).subscribe({
       next: () => {
         alert('Modificările au fost salvate cu succes!');
+        this.loadEmployees(); 
         this.loadDepartments(); 
       },
       error: (err) => {
-        console.error(err);
-        alert(err.error?.message || err.error || 'A apărut o eroare la salvare.');
+        let errorMsg = 'A apărut o eroare la salvarea modificărilor.';
+        
+        if (err.error && typeof err.error === 'object') {
+            if (err.error.message) {
+                errorMsg = err.error.message;
+            } else if (err.error.error) {
+                errorMsg = err.error.error;
+            }
+        } else if (typeof err.error === 'string') {
+            errorMsg = err.error;
+        } else if (err.message) {
+            errorMsg = err.message;
+        }
+        
+        alert(errorMsg);
       }
     });
   }

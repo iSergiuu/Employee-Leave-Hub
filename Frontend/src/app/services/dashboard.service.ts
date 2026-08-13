@@ -45,4 +45,11 @@ export class DashboardService {
       responseType: 'blob' 
     });
   }
+
+  downloadDepartmentReportPdf(email: string, month: number, year: number): Observable<Blob> {
+    return this.http.get(`${this.requestApiUrl}/department/report/pdf?email=${email}&month=${month}&year=${year}`, {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
 }

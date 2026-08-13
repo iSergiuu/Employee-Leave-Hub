@@ -17,7 +17,11 @@
 
     <div class="advanced-controls">
       <div class="control-group">
-        <input type="text" class="control-input" placeholder="Caută după tip..." [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()">
+        <select class="control-select" [(ngModel)]="selectedLeaveType" (ngModelChange)="applyFilters()">
+          <option value="ALL">Toate tipurile</option>
+          <option value="odihna">Concediu de Odihnă (CO)</option>
+          <option value="medical">Concediu Medical (CM)</option>
+        </select>
       </div>
       <div class="control-group">
         <select class="control-select" [(ngModel)]="selectedYear" (ngModelChange)="applyFilters()">

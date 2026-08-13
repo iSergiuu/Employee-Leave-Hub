@@ -50,15 +50,17 @@ public class AdminService {
                     .orElseThrow(() -> new RuntimeException("Departamentul nu a fost gasit"));
         }
 
-        // Salvăm modificările pe angajat
         employee.setRole(role);
         employee.setDepartment(dept);
+
+        if (employee.getPassword() == null) {
+            employee.setPassword("TEMP_DEFAULT_PASS_REPLACE_LATER");
+        }
+
         employeeRepository.save(employee);
 
-        // Gestionăm legătura de manager în tabela DEPARTMENT
         if (dept != null) {
             if ("Dept_resp".equalsIgnoreCase(role) || "Manager".equalsIgnoreCase(role)) {
-                // Dacă departamentul are deja un manager și nu este angajatul pe care îl edităm acum
                 if (dept.getManager() != null && !dept.getManager().getId().equals(employee.getId())) {
                     throw new RuntimeException("Eroare: Departamentul " + dept.getDepartmentName() +
                             " are deja un manager alocat (" + dept.getManager().getName() + ").");
@@ -66,14 +68,12 @@ public class AdminService {
                 dept.setManager(employee);
                 departmentRepository.save(dept);
             } else {
-                // Dacă i se ia rolul de manager, îl scoatem de la conducerea departamentului
                 if (dept.getManager() != null && dept.getManager().getId().equals(employee.getId())) {
                     dept.setManager(null);
                     departmentRepository.save(dept);
                 }
             }
         } else {
-            // Dacă angajatul este mutat pe "Fără departament", verificăm dacă era manager undeva și îl scoatem
             departmentRepository.findByManager(employee).ifPresent(d -> {
                 d.setManager(null);
                 departmentRepository.save(d);
@@ -92,14 +92,12 @@ public class AdminService {
             dto.setName(dept.getDepartmentName());
             dto.setMaxAbsentEmployees(dept.getMaxAbsentEmployees());
 
-            // Setăm numele managerului
             if (dept.getManager() != null) {
                 dto.setManagerName(dept.getManager().getName());
             } else {
                 dto.setManagerName("Fără Manager");
             }
 
-            // Extragem lista cu numele tuturor angajaților din acest departament
             List<String> employeeNames = employeeRepository.findByDepartmentId(dept.getId())
                     .stream()
                     .map(Employee::getName)

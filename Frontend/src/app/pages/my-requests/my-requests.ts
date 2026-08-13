@@ -16,7 +16,7 @@ export class MyRequestsComponent implements OnInit {
   availableYears: string[] = [];
 
   statusFilter: string = 'ALL';
-  searchQuery: string = '';
+  selectedLeaveType: string = 'ALL'; 
   selectedYear: string = 'ALL';
   sortOption: string = 'DATE_DESC';
 
@@ -71,8 +71,8 @@ export class MyRequestsComponent implements OnInit {
       result = result.filter(req => new Date(req.startDate).getFullYear().toString() === this.selectedYear);
     }
 
-    if (this.searchQuery.trim() !== '') {
-      const query = this.searchQuery.toLowerCase();
+    if (this.selectedLeaveType !== 'ALL') {
+      const query = this.selectedLeaveType.toLowerCase();
       result = result.filter(req => (req.leaveType?.name || '').toLowerCase().includes(query));
     }
 
