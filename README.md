@@ -1,282 +1,244 @@
-# Employee-Leave-Hub
+# Employee Leave Hub
 
-A modern employee leave and absence management system designed to streamline leave requests, approvals, tracking, and reporting within an organization.
-
-## Overview
-
-Employee-Leave-Hub helps companies manage employee time-off requests in a structured and transparent way. It allows employees to submit leave requests, managers to review and approve them, and administrators to monitor team availability and analytics.
+Employee Leave Hub is a full-stack leave-management application built with Angular and Spring Boot. It provides a centralized workflow for employees to submit leave requests and for managers and administrators to review, monitor, and manage organizational leave data.
 
 ## Key Features
 
-- Submit leave requests with start and end dates
-- Track leave status: pending, approved, rejected
-- Support different leave types such as vacation, sick leave, or personal time
-- View leave history and employee attendance records
-- Manager approval workflow
-- Department-based filtering and reporting
-- Dashboard with leave statistics and summaries
-- Role-based access control
-- Responsive and easy-to-use interface
+- Employee registration and login
+- Role-based dashboards for employees, managers, and administrators
+- Submission and tracking of leave requests
+- Employee request history
+- Manager review and approval workflow
+- Administrative management tools
+- Department and leave-type reporting
+- Calendar view for leave planning
+- JWT-based backend authentication
+- PDF report generation support
+- Responsive Angular interface
 
-## Tech Stack
+## Technology Stack
 
-| Layer | Technology |
-|------|------------|
-| Frontend | Angular |
-| Language | TypeScript |
-| Styling | SCSS / CSS |
-| State / HTTP | RxJS + Angular Services |
-| Build Tool | Angular CLI |
-| Runtime | Node.js |
+| Area | Technology |
+|---|---|
+| Frontend | Angular 21 |
+| Frontend language | TypeScript |
+| Styling | SCSS |
+| Calendar | FullCalendar |
+| Frontend testing | Vitest, jsdom |
+| Backend | Spring Boot 4.1 |
+| Backend language | Java 25 |
+| Security | Spring Security and JWT |
+| Data access | Spring Data JPA |
+| Database | Oracle Database |
+| Documentation | SpringDoc OpenAPI |
+| PDF generation | OpenPDF |
+| Build tools | Angular CLI, Maven |
 
 ## Project Structure
 
 ```text
 Employee-Leave-Hub/
 ├── Frontend/
+│   ├── public/
 │   ├── src/
-│   │   ├── app/
-│   │   │   ├── components/
-│   │   │   ├── pages/
-│   │   │   ├── services/
-│   │   │   ├── models/
-│   │   │   ├── guards/
-│   │   │   └── app.module.ts
-│   │   ├── assets/
-│   │   ├── styles/
-│   │   ├── index.html
-│   │   └── main.ts
+│   │   └── app/
+│   │       ├── layout/
+│   │       ├── pages/
+│   │       │   ├── login/
+│   │       │   ├── register/
+│   │       │   ├── employee-dashboard/
+│   │       │   ├── manager-dashboard/
+│   │       │   ├── admin-dashboard/
+│   │       │   ├── my-requests/
+│   │       │   └── calendar/
+│   │       ├── services/
+│   │       └── app.routes.ts
 │   ├── angular.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── README.md
+│   └── package.json
 ├── Backend/
 │   ├── src/
-│   ├── package.json
-│   └── README.md
-├── README.md
-└── .gitignore
+│   │   ├── main/java/
+│   │   ├── main/resources/
+│   │   └── test/
+│   ├── pom.xml
+│   └── mvnw
+├── CREATE TABLE departament (.sql
+├── CREATE USER leave_hub_user IDENTIFIED BY.sql
+└── README.md
 ```
 
 ## Prerequisites
 
-Before running the application, ensure you have the following installed:
+Install the following tools before running the project:
 
-- Node.js 18 or newer
+- Node.js 20 or newer
 - npm
 - Angular CLI
-- A working backend API for leave management data
-- Modern browser (Chrome, Edge, Firefox, Safari)
+- Java JDK 25
+- Maven or the included Maven Wrapper
+- Oracle Database
 
-## Installation
+## Database Setup
 
-### 1. Clone the repository
+The repository includes SQL scripts for initializing the database:
 
-```bash
-git clone https://github.com/iSergiuu/Employee-Leave-Hub.git
-cd Employee-Leave-Hub
+- `CREATE TABLE departament (.sql`
+- `CREATE USER leave_hub_user IDENTIFIED BY.sql`
+
+1. Create an Oracle database or connect to an existing instance.
+2. Run the provided SQL scripts.
+3. Verify that the `leave_hub_user` account can access the database.
+4. Update `Backend/src/main/resources/application.properties` if your database configuration differs:
+
+```properties
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521/FREEPDB1
+spring.datasource.username=leave_hub_user
+spring.datasource.password=your-password
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
 ```
 
-### 2. Install frontend dependencies
+> Avoid storing real passwords in source control. Use environment variables or an external configuration file for production deployments.
+
+## Backend Setup
+
+```bash
+cd Backend
+```
+
+On Linux or macOS:
+
+```bash
+./mvnw spring-boot:run
+```
+
+On Windows:
+
+```powershell
+mvnw.cmd spring-boot:run
+```
+
+The backend starts through Spring Boot. The available API documentation may be exposed through SpringDoc/Swagger after the application starts.
+
+## Frontend Setup
 
 ```bash
 cd Frontend
 npm install
-```
-
-### 3. Install Angular CLI globally (optional)
-
-```bash
-npm install -g @angular/cli
-```
-
-## Running the App
-
-### Development mode
-
-```bash
-cd Frontend
 npm start
 ```
 
-Or:
+Alternatively:
 
 ```bash
-cd Frontend
 ng serve
 ```
 
-Then open the application in your browser at:
+Open the application at:
 
 ```text
 http://localhost:4200
 ```
 
-### Production build
+## Frontend Routes
+
+| Route | Purpose |
+|---|---|
+| `/login` | User authentication |
+| `/register` | Account registration |
+| `/employee` | Employee dashboard |
+| `/manager` | Manager dashboard |
+| `/admin` | Administration dashboard |
+| `/my-requests` | Employee leave requests |
+| `/calendar` | Leave calendar |
+
+## Available Scripts
+
+### Frontend
+
+```bash
+npm start      # Start the development server
+npm run build  # Create a production build
+npm test       # Run unit tests
+```
+
+### Backend
+
+```bash
+./mvnw test
+./mvnw package
+./mvnw spring-boot:run
+```
+
+## API and Backend Structure
+
+The backend uses a Spring Boot architecture with:
+
+- REST controllers
+- JPA entities and repositories
+- Spring Security authentication
+- JWT token generation and validation
+- Oracle database integration
+- OpenPDF report support
+- Swagger/OpenAPI documentation
+
+## Security Considerations
+
+Before deploying the application:
+
+- Replace the default database credentials
+- Use strong JWT signing secrets
+- Restrict CORS origins
+- Enable HTTPS
+- Configure environment-specific secrets
+- Add route guards and role validation consistently
+- Review SQL scripts before executing them in a production database
+
+## Production Build
+
+### Frontend
 
 ```bash
 cd Frontend
-ng build --configuration production
+npm run build
 ```
 
-The build output will be generated in the `dist/` folder.
+The generated build is placed in the Angular `dist` directory.
 
-## Environment Configuration
-
-Create environment files in the frontend project if needed.
-
-Example for `src/environments/environment.ts`:
-
-```ts
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8080/api',
-  appName: 'Employee-Leave-Hub',
-  appVersion: '1.0.0'
-};
-```
-
-Example for production:
-
-```ts
-export const environment = {
-  production: true,
-  apiUrl: 'https://api.example.com/api',
-  appName: 'Employee-Leave-Hub',
-  appVersion: '1.0.0'
-};
-```
-
-## API Integration
-
-This frontend expects a backend API that exposes endpoints such as:
-
-### Authentication
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "employee@example.com",
-  "password": "password123"
-}
-```
-
-### Leave requests
-
-```http
-GET /api/leave-requests
-Authorization: Bearer {token}
-
-POST /api/leave-requests
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "startDate": "2026-10-10",
-  "endDate": "2026-10-14",
-  "leaveType": "annual",
-  "reason": "Planned vacation"
-}
-```
-
-### Approve or reject request
-
-```http
-PATCH /api/leave-requests/{id}/approve
-Authorization: Bearer {token}
-
-{
-  "status": "approved",
-  "comment": "Approved by manager"
-}
-```
-
-## User Roles
-
-| Role | Permissions |
-|------|------------|
-| Employee | Submit leave requests, view personal requests |
-| Manager | Review requests in their department, approve/reject |
-| Admin | Full access and system management |
-
-## Testing
-
-### Run unit tests
+### Backend
 
 ```bash
-cd Frontend
-ng test
+cd Backend
+./mvnw clean package
 ```
 
-### Lint project
-
-```bash
-cd Frontend
-ng lint
-```
+The packaged JAR is generated in `Backend/target`.
 
 ## Troubleshooting
 
-### Port 4200 already in use
+### Oracle connection fails
+
+- Confirm that Oracle Listener is running.
+- Verify the hostname, port, service name, username, and password.
+- Ensure the database user has been granted the required permissions.
+
+### Frontend cannot connect to the backend
+
+- Confirm that the Spring Boot server is running.
+- Verify the API base URL in the frontend services.
+- Check CORS configuration in the backend.
+
+### Angular dependencies fail to install
 
 ```bash
-# Linux/macOS
-lsof -i :4200
-kill -9 <PID>
-
-# Windows
-netstat -ano | findstr :4200
-taskkill /PID <PID> /F
-```
-
-Or run Angular on another port:
-
-```bash
-ng serve --port 4201
-```
-
-### Module not found or dependencies missing
-
-```bash
+cd Frontend
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-### API connection issues
-
-- Check whether the backend server is running
-- Verify the API URL in the Angular environment file
-- Make sure CORS is configured correctly on the backend
-
-### Angular CLI not found
-
-```bash
-npm install -g @angular/cli
-```
-
-## Contribution
-
-We welcome contributions.
-
-```bash
-git checkout -b feature/new-feature
-git commit -m "Add new feature"
-git push origin feature/new-feature
-```
-
-Then open a pull request on GitHub.
-
 ## License
 
-This project is intended for educational and internal business use.
+No license has been specified for this project.
 
-## Support
+## Repository
 
-If you encounter any issues, open a GitHub issue or contact the project maintainer.
-
----
-
-Last updated: October 2026
-Version: 1.0.0
+[Employee-Leave-Hub](https://github.com/iSergiuu/Employee-Leave-Hub)
